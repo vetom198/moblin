@@ -3,6 +3,7 @@ import Foundation
 import Spatial
 
 @available(iOS 18.0, *)
+@MainActor
 class Gimbal {
     private let model: Model
     private var task: Task<Void, Never>?
@@ -13,7 +14,7 @@ class Gimbal {
 
     init(model: Model) {
         self.model = model
-        task = Task { @MainActor [weak self] in
+        task = Task { [weak self] in
             do {
                 for await stateChange in try DockAccessoryManager.shared.accessoryStateChanges {
                     try self?.handleStateChange(stateChange: stateChange)
@@ -25,7 +26,7 @@ class Gimbal {
     }
 
     func isConnected() -> Bool {
-        return accessory != nil
+        accessory != nil
     }
 
     func setOrientation(angles: Vector3D) async {
@@ -71,7 +72,7 @@ class Gimbal {
         stopAccessoryEventsHandler()
         self.accessory = accessory
         shutterCount = 0
-        accessoryTask = Task { @MainActor [weak self] in
+        accessoryTask = Task { [weak self] in
             do {
                 try await DockAccessoryManager.shared.setSystemTrackingEnabled(false)
                 for await event in try accessory.accessoryEvents {

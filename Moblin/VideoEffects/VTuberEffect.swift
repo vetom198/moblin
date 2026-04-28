@@ -1,9 +1,9 @@
 import SceneKit
 import SwiftUI
 import Vision
-import VRMSceneKit
+@preconcurrency import VRMSceneKit
 
-final class VTuberEffect: VideoEffect {
+final class VTuberEffect: VideoEffect, @unchecked Sendable {
     private var videoSourceId: UUID = .init()
     private var scene: VRMScene?
     private var mirror: Bool = false
@@ -139,11 +139,13 @@ final class VTuberEffect: VideoEffect {
         node.humanoid.node(for: .rightUpperArm)?.eulerAngles = SCNVector3(0, 0, -armAngle)
     }
 
-    private func renderIfNeeded(node: VRMNode, image: CIImage, presentationTimeStamp: Double, time: Double) {
+    private func renderIfNeeded(node _: VRMNode, image: CIImage, presentationTimeStamp: Double,
+                                time: Double)
+    {
         guard presentationTimeStamp - renderedImagePresentationTimeStamp > 0.025 else {
             return
         }
-        node.update(at: time)
+        // node.update(at: time)
         let factor = (max(image.extent.width, image.extent.height) / 1920)
         let width = 600.0 * factor
         let height = 600.0 * factor
@@ -157,6 +159,6 @@ final class VTuberEffect: VideoEffect {
     }
 
     override func needsFaceDetections(_: Double) -> VideoEffectDetectionsMode {
-        return .interval(videoSourceId, 0.1)
+        .interval(videoSourceId, 0.1)
     }
 }

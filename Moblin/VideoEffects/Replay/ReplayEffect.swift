@@ -27,12 +27,12 @@ private enum StingersState {
     case end
 }
 
-final class ReplayEffect: VideoEffect {
+final class ReplayEffect: VideoEffect, @unchecked Sendable {
     private var playbackCompleted = false
     private let speed: Double
     private let reader: ReplayEffectReplayReader
     private var startPresentationTimeStamp: Double?
-    private weak var delegate: ReplayEffectDelegate?
+    private weak var delegate: (any ReplayEffectDelegate)?
     private var lastImageOffset: Double?
     private var latestImage: CIImage?
     private var cancelled = false
@@ -58,7 +58,7 @@ final class ReplayEffect: VideoEffect {
         size: CMVideoDimensions,
         layout: SettingsWidgetLayout,
         transitionMode: ReplayEffectTransitionMode,
-        delegate: ReplayEffectDelegate
+        delegate: any ReplayEffectDelegate
     ) {
         self.speed = speed
         self.layout = layout
@@ -91,14 +91,14 @@ final class ReplayEffect: VideoEffect {
     override func execute(_ image: CIImage, _ info: VideoEffectInfo) -> CIImage {
         switch transitionMode {
         case .none, .fade:
-            return executeNoneAndFade(image, info.presentationTimeStamp.seconds)
+            executeNoneAndFade(image, info.presentationTimeStamp.seconds)
         case .stingers:
-            return executeStingers(image, info.presentationTimeStamp.seconds)
+            executeStingers(image, info.presentationTimeStamp.seconds)
         }
     }
 
     override func shouldRemove() -> Bool {
-        return playbackCompleted
+        playbackCompleted
     }
 
     private func updateStatus(offset: Double) {
@@ -177,13 +177,13 @@ extension ReplayEffect {
     private func executeStingers(_ image: CIImage, _ presentationTimeStamp: Double) -> CIImage {
         switch stingersState {
         case .setup:
-            return executeStingersSetup(image, presentationTimeStamp)
+            executeStingersSetup(image, presentationTimeStamp)
         case .begin:
-            return executeStingersBegin(image, presentationTimeStamp)
+            executeStingersBegin(image, presentationTimeStamp)
         case .middle:
-            return executeStingersMiddle(image, presentationTimeStamp)
+            executeStingersMiddle(image, presentationTimeStamp)
         case .end:
-            return executeStingersEnd(image, presentationTimeStamp)
+            executeStingersEnd(image, presentationTimeStamp)
         }
     }
 

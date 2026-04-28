@@ -1,7 +1,7 @@
 import Foundation
 import Network
 
-class IPMonitor {
+class IPMonitor: @unchecked Sendable {
     enum IPType {
         case ipv4
         case ipv6
@@ -9,9 +9,9 @@ class IPMonitor {
         func formatAddress(_ address: String) -> String {
             switch self {
             case .ipv4:
-                return address
+                address
             case .ipv6:
-                return "[\(address)]"
+                "[\(address)]"
             }
         }
     }

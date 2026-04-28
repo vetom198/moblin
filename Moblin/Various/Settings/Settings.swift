@@ -4,8 +4,8 @@ import ZipArchive
 
 let defaultStreamUrl = "srt://my_public_ip:4000"
 let defaultRtmpStreamUrl = "rtmp://my_public_ip:1935/live/foobar"
-let defaultQuickButtonColor = RgbColor(red: 255 / 4, green: 255 / 4, blue: 255 / 4)
-let defaultStreamButtonColor = RgbColor(red: 255, green: 59, blue: 48)
+nonisolated(unsafe) let defaultQuickButtonColor = RgbColor(red: 255 / 4, green: 255 / 4, blue: 255 / 4)
+nonisolated(unsafe) let defaultStreamButtonColor = RgbColor(red: 255, green: 59, blue: 48)
 let defaultSrtLatency: Int32 = 3000
 let minZoomX: Float = 0.5
 
@@ -33,7 +33,7 @@ enum SettingsColorLutType: String, Codable {
     case diskCube
 }
 
-class SettingsColorLut: Codable, Identifiable, ObservableObject {
+class SettingsColorLut: Codable, Identifiable, ObservableObject, @unchecked Sendable {
     var id: UUID = .init()
     @Published var type: SettingsColorLutType = .bundled
     @Published var name: String = ""
@@ -51,7 +51,7 @@ class SettingsColorLut: Codable, Identifiable, ObservableObject {
              enabled
     }
 
-    func encode(to encoder: Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(.id, id)
         try container.encode(.type, type)
@@ -59,7 +59,7 @@ class SettingsColorLut: Codable, Identifiable, ObservableObject {
         try container.encode(.enabled, enabled)
     }
 
-    required init(from decoder: Decoder) throws {
+    required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = container.decode(.id, UUID.self, .init())
         type = container.decode(.type, SettingsColorLutType.self, .bundled)
@@ -108,7 +108,7 @@ class SettingsColor: Codable, ObservableObject {
              diskLutsCube
     }
 
-    func encode(to encoder: Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(.space, space)
         try container.encode(.lutEnabled, lutEnabled)
@@ -119,7 +119,7 @@ class SettingsColor: Codable, ObservableObject {
         try container.encode(.diskLutsCube, diskLutsCube)
     }
 
-    required init(from decoder: Decoder) throws {
+    required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         space = container.decode(.space, SettingsColorSpace.self, .srgb)
         lutEnabled = container.decode(.lutEnabled, Bool.self, true)
@@ -188,7 +188,7 @@ class SettingsShow: Codable, ObservableObject {
              cpu
     }
 
-    func encode(to encoder: Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(.chat, chat)
         try container.encode(.viewers, viewers)
@@ -217,7 +217,7 @@ class SettingsShow: Codable, ObservableObject {
         try container.encode(.cpu, systemMonitor)
     }
 
-    required init(from decoder: Decoder) throws {
+    required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         chat = container.decode(.chat, Bool.self, true)
         viewers = container.decode(.viewers, Bool.self, true)
@@ -259,7 +259,7 @@ class SettingsZoomPreset: Codable, Identifiable, Equatable, ObservableObject {
     }
 
     static func == (lhs: SettingsZoomPreset, rhs: SettingsZoomPreset) -> Bool {
-        return lhs.id == rhs.id
+        lhs.id == rhs.id
     }
 
     enum CodingKeys: CodingKey {
@@ -268,14 +268,14 @@ class SettingsZoomPreset: Codable, Identifiable, Equatable, ObservableObject {
              x
     }
 
-    func encode(to encoder: Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(.id, id)
         try container.encode(.name, name)
         try container.encode(.x, x)
     }
 
-    required init(from decoder: Decoder) throws {
+    required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = container.decode(.id, UUID.self, .init())
         name = container.decode(.name, String.self, "")
@@ -296,14 +296,14 @@ class SettingsZoomSwitchTo: Codable, ObservableObject {
              enabled
     }
 
-    func encode(to encoder: Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(.level, level)
         try container.encode(.x, x)
         try container.encode(.enabled, enabled)
     }
 
-    required init(from decoder: Decoder) throws {
+    required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         level = container.decode(.level, Float.self, 1.0)
         x = container.decode(.x, Float.self, 1.0)
@@ -328,7 +328,7 @@ class SettingsZoom: Codable, ObservableObject {
              speed
     }
 
-    func encode(to encoder: Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(.back, back)
         try container.encode(.front, front)
@@ -337,7 +337,7 @@ class SettingsZoom: Codable, ObservableObject {
         try container.encode(.speed, speed)
     }
 
-    required init(from decoder: Decoder) throws {
+    required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         back = container.decode(.back, [SettingsZoomPreset].self, [])
         front = container.decode(.front, [SettingsZoomPreset].self, [])
@@ -361,13 +361,13 @@ class SettingsBitratePreset: Codable, Identifiable, ObservableObject {
              bitrate
     }
 
-    func encode(to encoder: Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(.id, id)
         try container.encode(.bitrate, bitrate)
     }
 
-    required init(from decoder: Decoder) throws {
+    required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = container.decode(.id, UUID.self, .init())
         bitrate = container.decode(.bitrate, UInt32.self, 5_000_000)
@@ -383,22 +383,22 @@ enum SettingsVideoStabilizationMode: String, Codable, CaseIterable {
     func toString() -> String {
         switch self {
         case .off:
-            return String(localized: "Off")
+            String(localized: "Off")
         case .standard:
-            return String(localized: "Standard")
+            String(localized: "Standard")
         case .cinematic:
-            return String(localized: "Cinematic")
+            String(localized: "Cinematic")
         case .cinematicExtendedEnhanced:
-            return String(localized: "Cinematic extended enhanced")
+            String(localized: "Cinematic extended enhanced")
         }
     }
 }
 
-var videoStabilizationModes = SettingsVideoStabilizationMode.allCases.filter {
+let videoStabilizationModes = SettingsVideoStabilizationMode.allCases.filter {
     if #available(iOS 18.0, *) {
-        return true
+        true
     } else {
-        return $0 != .cinematicExtendedEnhanced
+        $0 != .cinematicExtendedEnhanced
     }
 }
 
@@ -413,7 +413,7 @@ class SettingsTesla: Codable {
              enabled
     }
 
-    func encode(to encoder: Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(.vin, vin)
         try container.encode(.privateKey, privateKey)
@@ -422,7 +422,7 @@ class SettingsTesla: Codable {
 
     init() {}
 
-    required init(from decoder: Decoder) throws {
+    required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         vin = container.decode(.vin, String.self, "")
         privateKey = container.decode(.privateKey, String.self, "")
@@ -449,7 +449,7 @@ class SettingsMediaPlayerFile: Codable, Identifiable {
     }
 }
 
-class SettingsMediaPlayer: Codable, Identifiable, ObservableObject, Named {
+class SettingsMediaPlayer: Codable, Identifiable, ObservableObject, Named, @unchecked Sendable {
     static let baseName = String(localized: "My player")
     var id: UUID = .init()
     @Published var name: String = baseName
@@ -465,7 +465,7 @@ class SettingsMediaPlayer: Codable, Identifiable, ObservableObject, Named {
              playlist
     }
 
-    func encode(to encoder: Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(.id, id)
         try container.encode(.name, name)
@@ -476,7 +476,7 @@ class SettingsMediaPlayer: Codable, Identifiable, ObservableObject, Named {
 
     init() {}
 
-    required init(from decoder: Decoder) throws {
+    required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = container.decode(.id, UUID.self, .init())
         name = container.decode(.name, String.self, Self.baseName)
@@ -486,7 +486,7 @@ class SettingsMediaPlayer: Codable, Identifiable, ObservableObject, Named {
     }
 
     func camera() -> String {
-        return mediaPlayerCamera(name: name)
+        mediaPlayerCamera(name: name)
     }
 
     func clone() -> SettingsMediaPlayer {
@@ -509,14 +509,14 @@ class SettingsMediaPlayers: Codable, ObservableObject {
         case players
     }
 
-    func encode(to encoder: Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(.players, players)
     }
 
     init() {}
 
-    required init(from decoder: Decoder) throws {
+    required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         players = container.decode(.players, [SettingsMediaPlayer].self, [])
     }
@@ -529,9 +529,9 @@ enum SettingsReplaySpeed: String, Codable, CaseIterable {
     func toNumber() -> Double {
         switch self {
         case .oneHalf:
-            return 0.5
+            0.5
         case .one:
-            return 1.0
+            1.0
         }
     }
 }
@@ -550,14 +550,14 @@ class SettingsReplay: Codable, ObservableObject {
              speed
     }
 
-    func encode(to encoder: Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(.start, start)
         try container.encode(.stop, stop)
         try container.encode(.speed, speed)
     }
 
-    required init(from decoder: Decoder) throws {
+    required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         start = container.decode(.start, Double.self, 20.0)
         stop = container.decode(.stop, Double.self, SettingsReplay.stop)
@@ -581,7 +581,7 @@ class SettingsCyclingPowerDevice: Codable, Identifiable, ObservableObject, Named
              bluetoothPeripheralId
     }
 
-    func encode(to encoder: Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(.id, id)
         try container.encode(.name, name)
@@ -592,7 +592,7 @@ class SettingsCyclingPowerDevice: Codable, Identifiable, ObservableObject, Named
 
     init() {}
 
-    required init(from decoder: Decoder) throws {
+    required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = container.decode(.id, UUID.self, .init())
         name = container.decode(.name, String.self, Self.baseName)
@@ -609,14 +609,14 @@ class SettingsCyclingPowerDevices: Codable, ObservableObject {
         case devices
     }
 
-    func encode(to encoder: Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(.devices, devices)
     }
 
     init() {}
 
-    required init(from decoder: Decoder) throws {
+    required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         devices = container.decode(.devices, [SettingsCyclingPowerDevice].self, [])
     }
@@ -638,7 +638,7 @@ class SettingsWorkoutDevice: Codable, Identifiable, ObservableObject, Named {
              bluetoothPeripheralId
     }
 
-    func encode(to encoder: Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(.id, id)
         try container.encode(.name, name)
@@ -649,7 +649,7 @@ class SettingsWorkoutDevice: Codable, Identifiable, ObservableObject, Named {
 
     init() {}
 
-    required init(from decoder: Decoder) throws {
+    required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = container.decode(.id, UUID.self, .init())
         name = container.decode(.name, String.self, Self.baseName)
@@ -666,20 +666,20 @@ class SettingsWorkoutDevices: Codable, ObservableObject {
         case devices
     }
 
-    func encode(to encoder: Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(.devices, devices)
     }
 
     init() {}
 
-    required init(from decoder: Decoder) throws {
+    required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         devices = container.decode(.devices, [SettingsWorkoutDevice].self, [])
     }
 }
 
-private let defaultRgbLightColor = RgbColor(red: 0, green: 255, blue: 0)
+private nonisolated(unsafe) let defaultRgbLightColor = RgbColor(red: 0, green: 255, blue: 0)
 
 class SettingsBlackSharkCoolerDevice: Codable, Identifiable, ObservableObject, Named {
     static let baseName = String(localized: "My cooler")
@@ -704,7 +704,7 @@ class SettingsBlackSharkCoolerDevice: Codable, Identifiable, ObservableObject, N
              rgbLightBrightness
     }
 
-    func encode(to encoder: Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(.id, id)
         try container.encode(.name, name)
@@ -718,7 +718,7 @@ class SettingsBlackSharkCoolerDevice: Codable, Identifiable, ObservableObject, N
 
     init() {}
 
-    required init(from decoder: Decoder) throws {
+    required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = container.decode(.id, UUID.self, .init())
         name = container.decode(.name, String.self, Self.baseName)
@@ -739,20 +739,20 @@ class SettingsBlackSharkCoolerDevices: Codable, ObservableObject {
         case devices
     }
 
-    func encode(to encoder: Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(.devices, devices)
     }
 
     init() {}
 
-    required init(from decoder: Decoder) throws {
+    required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         devices = container.decode(.devices, [SettingsBlackSharkCoolerDevice].self, [])
     }
 }
 
-class SettingsNetworkInterfaceName: Codable, Identifiable {
+class SettingsNetworkInterfaceName: Codable, Identifiable, @unchecked Sendable {
     var id: UUID = .init()
     var interfaceName: String = ""
     var name: String = ""
@@ -767,13 +767,13 @@ enum SettingsExternalDisplayContent: String, Codable, CaseIterable {
     func toString() -> String {
         switch self {
         case .stream:
-            return String(localized: "Stream")
+            String(localized: "Stream")
         case .cleanStream:
-            return String(localized: "Clean stream")
+            String(localized: "Clean stream")
         case .chat:
-            return String(localized: "Chat")
+            String(localized: "Chat")
         case .mirror:
-            return String(localized: "Mirror")
+            String(localized: "Mirror")
         }
     }
 }
@@ -786,14 +786,14 @@ class WebBrowserBookmarkSettings: Identifiable, Codable, ObservableObject {
         case url
     }
 
-    func encode(to encoder: Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(.url, url)
     }
 
     init() {}
 
-    required init(from decoder: Decoder) throws {
+    required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         url = container.decode(.url, String.self, "https://google.com")
     }
@@ -808,7 +808,7 @@ class WebBrowserSettings: Codable, ObservableObject {
              bookmarks
     }
 
-    func encode(to encoder: Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(.home, home)
         try container.encode(.bookmarks, bookmarks)
@@ -816,7 +816,7 @@ class WebBrowserSettings: Codable, ObservableObject {
 
     init() {}
 
-    required init(from decoder: Decoder) throws {
+    required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         home = container.decode(.home, String.self, "https://google.com")
         bookmarks = container.decode(.bookmarks, [WebBrowserBookmarkSettings].self, [])
@@ -832,7 +832,7 @@ class SettingsAlertsMediaGalleryItem: Codable, Identifiable {
     }
 }
 
-private let allBundledAlertsMediaGalleryImages = [
+private nonisolated(unsafe) let allBundledAlertsMediaGalleryImages = [
     SettingsAlertsMediaGalleryItem(name: "Moblin pixels"),
     SettingsAlertsMediaGalleryItem(name: "Moblin party"),
     SettingsAlertsMediaGalleryItem(name: "Moblin trillionaire"),
@@ -843,7 +843,7 @@ private let allBundledAlertsMediaGalleryImages = [
     SettingsAlertsMediaGalleryItem(name: "-100"),
 ]
 
-private let allBundledAlertsMediaGallerySounds = [
+private nonisolated(unsafe) let allBundledAlertsMediaGallerySounds = [
     SettingsAlertsMediaGalleryItem(name: "Notification 2"),
     SettingsAlertsMediaGalleryItem(name: "Boing"),
     SettingsAlertsMediaGalleryItem(name: "Cash register"),
@@ -867,11 +867,11 @@ class SettingsAlertsMediaGallery: Codable {
     var customSounds: [SettingsAlertsMediaGalleryItem] = []
 
     func getWhiteStarImageId() -> UUID {
-        return bundledImages[3].id
+        bundledImages[3].id
     }
 
     func getGlassesImageId() -> UUID {
-        return bundledImages[5].id
+        bundledImages[5].id
     }
 }
 
@@ -884,7 +884,7 @@ class SettingsDisconnectProtection: Codable, ObservableObject {
              fallbackSceneId
     }
 
-    func encode(to encoder: Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(.liveSceneId, liveSceneId)
         try container.encode(.fallbackSceneId, fallbackSceneId)
@@ -892,7 +892,7 @@ class SettingsDisconnectProtection: Codable, ObservableObject {
 
     init() {}
 
-    required init(from decoder: Decoder) throws {
+    required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         liveSceneId = container.decode(.liveSceneId, UUID?.self, .init())
         fallbackSceneId = container.decode(.fallbackSceneId, UUID?.self, .init())
@@ -906,9 +906,9 @@ enum SettingsWiFiAwareRole: Codable, CaseIterable {
     func toString() -> String {
         switch self {
         case .sender:
-            return "Sender"
+            "Sender"
         case .receiver:
-            return "Receiver"
+            "Receiver"
         }
     }
 }
@@ -922,7 +922,7 @@ class SettingsWiFiAware: Codable, ObservableObject {
              role
     }
 
-    func encode(to encoder: Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(.enabled, enabled)
         try container.encode(.role, role)
@@ -930,7 +930,7 @@ class SettingsWiFiAware: Codable, ObservableObject {
 
     init() {}
 
-    required init(from decoder: Decoder) throws {
+    required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         enabled = container.decode(.enabled, Bool.self, false)
         role = container.decode(.role, SettingsWiFiAwareRole.self, .sender)
@@ -945,11 +945,11 @@ enum SettingsFacePrivacyMode: String, Codable, CaseIterable {
     func toString() -> LocalizedStringKey {
         switch self {
         case .blur:
-            return "Blur"
+            "Blur"
         case .pixellate:
-            return "Pixellate"
+            "Pixellate"
         case .backgroundImage:
-            return "Background image"
+            "Background image"
         }
     }
 }
@@ -969,7 +969,7 @@ class SettingsFace: Codable, ObservableObject {
              pixellateStrength
     }
 
-    func encode(to encoder: Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(.privacyMode, privacyMode)
         try container.encode(.blurStrength, blurStrength)
@@ -978,7 +978,7 @@ class SettingsFace: Codable, ObservableObject {
 
     init() {}
 
-    required init(from decoder: Decoder) throws {
+    required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         blurFaces = false
         blurText = false
@@ -990,14 +990,13 @@ class SettingsFace: Codable, ObservableObject {
     }
 
     func toEffectSettings(backgroundImage: CIImage?) -> FaceEffectSettings {
-        let faceEffectPrivacyMode: FaceEffectPrivacyMode
-        switch privacyMode {
+        let faceEffectPrivacyMode: FaceEffectPrivacyMode = switch privacyMode {
         case .blur:
-            faceEffectPrivacyMode = .blur(strength: blurStrength)
+            .blur(strength: blurStrength)
         case .pixellate:
-            faceEffectPrivacyMode = .pixellate(strength: pixellateStrength)
+            .pixellate(strength: pixellateStrength)
         case .backgroundImage:
-            faceEffectPrivacyMode = .backgroundImage(backgroundImage)
+            .backgroundImage(backgroundImage)
         }
         return FaceEffectSettings(blurFaces: blurFaces,
                                   blurText: blurText,
@@ -1014,9 +1013,9 @@ enum SettingsBeautySettings: CaseIterable {
     func toString() -> String {
         switch self {
         case .smoothness:
-            return String(localized: "Smoothness")
+            String(localized: "Smoothness")
         case .shape:
-            return String(localized: "Shape")
+            String(localized: "Shape")
         }
     }
 }
@@ -1039,7 +1038,7 @@ class SettingsBeauty: Codable, ObservableObject {
              shapeStrength
     }
 
-    func encode(to encoder: Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(.enabled, enabled)
         try container.encode(.smoothRadius, smoothnessRadius)
@@ -1051,7 +1050,7 @@ class SettingsBeauty: Codable, ObservableObject {
 
     init() {}
 
-    required init(from decoder: Decoder) throws {
+    required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         enabled = container.decode(.enabled, Bool.self, false)
         smoothnessRadius = container.decode(.smoothRadius, Float.self, 10.0)
@@ -1142,6 +1141,7 @@ class Database: Codable, ObservableObject {
     var talkback: SettingsTalkback = .init()
     var gimbal: SettingsGimbal = .init()
 
+    @MainActor
     static func fromString(settings: String) throws -> Database {
         let database = try JSONDecoder().decode(
             Database.self,
@@ -1169,7 +1169,7 @@ class Database: Codable, ObservableObject {
     }
 
     func toString() throws -> String {
-        return try String.fromUtf8(data: JSONEncoder().encode(self))
+        try String.fromUtf8(data: JSONEncoder().encode(self))
     }
 
     enum CodingKeys: CodingKey {
@@ -1253,7 +1253,7 @@ class Database: Codable, ObservableObject {
              gimbal
     }
 
-    func encode(to encoder: Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(.streams, streams)
         try container.encode(.scenes, scenes)
@@ -1336,7 +1336,7 @@ class Database: Codable, ObservableObject {
 
     init() {}
 
-    required init(from decoder: Decoder) throws {
+    required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         streams = container.decode(.streams, [SettingsStream].self, [])
         scenes = container.decode(.scenes, [SettingsScene].self, [])
@@ -1572,22 +1572,22 @@ private func updateQuickButton(database: Database, button: SettingsQuickButton) 
 }
 
 private func quickButtonPageOne() -> Int {
-    return 1
+    1
 }
 
 private func quickButtonPageTwo() -> Int {
     if #available(iOS 17, *) {
-        return 2
+        2
     } else {
-        return 1
+        1
     }
 }
 
 private func quickButtonPageThree() -> Int {
     if #available(iOS 17, *) {
-        return 3
+        3
     } else {
-        return 1
+        1
     }
 }
 
@@ -1946,6 +1946,7 @@ private func addMissingQuickButtonsPageThree(database: Database) {
     updateQuickButton(database: database, button: button)
 }
 
+@MainActor
 private func addMissingQuickButtons(database: Database) {
     addMissingQuickButtonsPageOne(database: database)
     addMissingQuickButtonsPageTwo(database: database)
@@ -2056,6 +2057,7 @@ func getDefaultMic() -> SettingsMic {
     return .bottom
 }
 
+@MainActor
 private func createDefault() -> Database {
     let database = Database()
     addDefaultScenes(database: database)
@@ -2082,7 +2084,7 @@ private let exportFiles = [
     URL.documentsDirectory.appending(component: "faceBackgroundImage.img"),
 ]
 
-final class Settings {
+final class Settings: @unchecked Sendable {
     private var realDatabase = Database()
     var database: Database {
         realDatabase
@@ -2090,6 +2092,7 @@ final class Settings {
 
     @AppStorage("settings") var storage = ""
 
+    @MainActor
     func load() {
         do {
             try tryLoadAndMigrate(settings: storage)
@@ -2099,6 +2102,7 @@ final class Settings {
         }
     }
 
+    @MainActor
     private func tryLoadAndMigrate(settings: String) throws {
         realDatabase = try Database.fromString(settings: settings)
         addSensitiveData(database: realDatabase)
@@ -2115,12 +2119,13 @@ final class Settings {
         }
     }
 
+    @MainActor
     func reset() {
         realDatabase = createDefault()
         store()
     }
 
-    func importFromFile(url: URL, onCompleted: @escaping (String?) -> Void) {
+    func importFromFile(url: URL, onCompleted: @MainActor @escaping (String?) -> Void) {
         let root = URL.documentsDirectory
         DispatchQueue.global().async {
             let settingsJson = root.appendingPathComponent(settingsJsonName)
@@ -2148,6 +2153,7 @@ final class Settings {
         }
     }
 
+    @MainActor
     func importFromClipboard(settings: String, onCompleted: @escaping (String?) -> Void) {
         do {
             try tryLoadAndMigrate(settings: settings)
@@ -2158,12 +2164,14 @@ final class Settings {
         }
     }
 
-    func exportToFile(onCompleted: @escaping (URL?) -> Void) {
+    @MainActor
+    func exportToFile(onCompleted: @MainActor @escaping (URL?) -> Void) {
         store()
         let settingsJson = [UInt8](storage.utf8)
+        let name = UIDevice.current.name
         DispatchQueue.global().async {
             let url = FileManager.default.temporaryDirectory
-                .appendingPathComponent("\(UIDevice.current.name)_\(formatFilenameDateAndTime())")
+                .appendingPathComponent("\(name)_\(formatFilenameDateAndTime())")
                 .appendingPathExtension("moblinSettings")
             try? FileManager.default.removeItem(at: url)
             do {

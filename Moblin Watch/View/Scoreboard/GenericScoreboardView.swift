@@ -1,3 +1,4 @@
+import Combine
 import SwiftUI
 
 private let clockFieldWidth = 70.0
@@ -18,9 +19,9 @@ class Generic: ObservableObject {
 
 private func formatSeconds(_ value: Int) -> String {
     if value < 10 {
-        return "0\(value)"
+        "0\(value)"
     } else {
-        return String(value)
+        String(value)
     }
 }
 

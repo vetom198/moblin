@@ -1,7 +1,7 @@
 import AVFoundation
 import libsrt
 
-class SrtServer {
+class SrtServer: @unchecked Sendable {
     weak var srtlaServer: SrtlaServer?
     private var listenerSocket: SRTSOCKET = SRT_INVALID_SOCK
     var acceptedStreamId: Atomic<String> = .init("")
@@ -126,7 +126,8 @@ class SrtServer {
                 }
                 let srtServer: SrtServer = Unmanaged.fromOpaque(server)
                     .takeUnretainedValue()
-                srtServer.acceptedStreamId.mutate { $0 = String(cString: streamIdIn) }
+                let streamId = String(cString: streamIdIn)
+                srtServer.acceptedStreamId.mutate { $0 = streamId }
                 return 0
             },
             server
@@ -146,5 +147,5 @@ class SrtServer {
 }
 
 private func lastSrtSocketError() -> String {
-    return String(cString: srt_getlasterror_str())
+    String(cString: srt_getlasterror_str())
 }

@@ -32,7 +32,7 @@ struct PoweredByMoblinView: View {
     }
 }
 
-final class ScoreboardEffect: VideoEffect {
+final class ScoreboardEffect: VideoEffect, @unchecked Sendable {
     private var scoreboardImage: CIImage?
     private var sceneWidget: SettingsSceneWidget?
 

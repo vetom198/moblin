@@ -51,6 +51,7 @@ enum TextFormatPart: Equatable {
     case gForceMax
 }
 
+@MainActor
 class TextFormatLoader {
     private var format: String = ""
     private var parts: [TextFormatPart] = []
@@ -245,8 +246,9 @@ class TextFormatLoader {
     }
 }
 
+@MainActor
 func loadTextFormat(format: String) -> [TextFormatPart] {
-    return TextFormatLoader().load(format: format)
+    TextFormatLoader().load(format: format)
 }
 
 extension [TextFormatPart] {

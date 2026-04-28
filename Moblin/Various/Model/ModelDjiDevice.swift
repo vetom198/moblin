@@ -2,7 +2,7 @@ import Foundation
 
 class DjiDeviceWrapper {
     let device: DjiDevice
-    var autoRestartStreamTimer: DispatchSourceTimer?
+    var autoRestartStreamTimer: (any DispatchSourceTimer)?
 
     init(device: DjiDevice) {
         self.device = device
@@ -27,12 +27,11 @@ extension Model {
         djiDeviceWrapper: DjiDeviceWrapper,
         device: SettingsDjiDevice
     ) {
-        var rtmpUrl: String?
-        switch device.rtmpUrlType {
+        let rtmpUrl: String? = switch device.rtmpUrlType {
         case .server:
-            rtmpUrl = device.serverRtmpUrl
+            device.serverRtmpUrl
         case .custom:
-            rtmpUrl = device.customRtmpUrl
+            device.customRtmpUrl
         }
         guard let rtmpUrl else {
             return
@@ -128,7 +127,7 @@ extension Model {
     }
 
     private func getDjiDeviceSettings(djiDevice: DjiDevice) -> SettingsDjiDevice? {
-        return database.djiDevices.devices.first(where: { djiDeviceWrappers[$0.id]?.device === djiDevice })
+        database.djiDevices.devices.first(where: { djiDeviceWrappers[$0.id]?.device === djiDevice })
     }
 
     func setCurrentDjiDevice(device: SettingsDjiDevice) {

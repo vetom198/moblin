@@ -9,7 +9,7 @@ private struct PasswordView: View {
     @State private var message: String?
 
     private func isAllowedPassword(password: String) -> Bool {
-        return !password.isEmpty
+        !password.isEmpty
     }
 
     private func submit() {
@@ -22,9 +22,9 @@ private struct PasswordView: View {
 
     private func createMessage() -> String? {
         if isAllowedPassword(password: value) {
-            return nil
+            nil
         } else {
-            return "Not long and random enough"
+            "Not long and random enough"
         }
     }
 
@@ -44,7 +44,7 @@ private struct PasswordView: View {
                         }
                         .submitLabel(.done)
                         .onDisappear {
-                            if changed && !submitted {
+                            if changed, !submitted {
                                 submit()
                             }
                         }
@@ -235,7 +235,7 @@ private struct UrlsView: View {
     let port: UInt16
 
     private func formatUrl(ip: String) -> String {
-        return "ws://\(ip):\(port)"
+        "ws://\(ip):\(port)"
     }
 
     var body: some View {

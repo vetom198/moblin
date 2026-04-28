@@ -82,7 +82,9 @@ extension Model {
         case .gimbalAnimate:
             if !pressed {
                 if #available(iOS 18.0, *) {
-                    Gimbal.shared?.animate(motion: gimbalMotion.toSystem())
+                    DispatchQueue.main.async {
+                        Gimbal.shared?.animate(motion: gimbalMotion.toSystem())
+                    }
                 }
             }
         case .torch:
@@ -195,7 +197,7 @@ extension Model {
     }
 
     func isGameControllerConnected() -> Bool {
-        return numberOfGameControllers() > 0
+        numberOfGameControllers() > 0
     }
 
     private func handleGameControllerButtonZoom(pressed: Bool, x: Float) {
@@ -210,10 +212,12 @@ extension Model {
 
     private func handleGameControllerButtonGimbal(pressed: Bool, velocity: Vector3D) {
         if #available(iOS 18.0, *) {
-            if pressed {
-                Gimbal.shared?.setMovement(velocity: velocity)
-            } else {
-                Gimbal.shared?.cancelMovement()
+            DispatchQueue.main.async {
+                if pressed {
+                    Gimbal.shared?.setMovement(velocity: velocity)
+                } else {
+                    Gimbal.shared?.cancelMovement()
+                }
             }
         }
     }
@@ -279,7 +283,7 @@ extension Model {
     }
 
     private func numberOfGameControllers() -> Int {
-        return gameControllers.filter { $0 != nil }.count
+        gameControllers.filter { $0 != nil }.count
     }
 
     private func updateGameControllers() {
@@ -378,6 +382,6 @@ extension Model {
     }
 
     func isShowingStatusGameController() -> Bool {
-        return database.show.gameController && isGameControllerConnected()
+        database.show.gameController && isGameControllerConnected()
     }
 }

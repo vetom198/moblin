@@ -67,7 +67,7 @@ enum SettingsQuickButtonType: String, Codable, CaseIterable {
     case interactiveBrowserWidgets = "Interactive browser widgets"
     case macros = "Macros"
 
-    init(from decoder: Decoder) throws {
+    init(from decoder: any Decoder) throws {
         var value = try decoder.singleValueContainer().decode(RawValue.self)
         if value == "Pause chat" {
             value = "Chat"
@@ -116,7 +116,7 @@ class SettingsQuickButton: Codable, Identifiable, ObservableObject {
              page
     }
 
-    func encode(to encoder: Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(.name, name)
         try container.encode(.id, id)
@@ -129,7 +129,7 @@ class SettingsQuickButton: Codable, Identifiable, ObservableObject {
         try container.encode(.page, page)
     }
 
-    required init(from decoder: Decoder) throws {
+    required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         name = container.decode(.name, String.self, "")
         id = container.decode(.id, UUID.self, .init())
@@ -161,7 +161,7 @@ class SettingsQuickButtons: Codable, ObservableObject {
              blackScreenShowStatus
     }
 
-    func encode(to encoder: Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(.twoColumns, twoColumns)
         try container.encode(.bigButtons, bigButtons)
@@ -173,7 +173,7 @@ class SettingsQuickButtons: Codable, ObservableObject {
 
     init() {}
 
-    required init(from decoder: Decoder) throws {
+    required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         twoColumns = container.decode(.twoColumns, Bool.self, true)
         bigButtons = container.decode(.bigButtons, Bool.self, false)

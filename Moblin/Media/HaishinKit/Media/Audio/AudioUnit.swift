@@ -1,4 +1,4 @@
-import AVFoundation
+@preconcurrency import AVFoundation
 import Collections
 import CoreAudio
 
@@ -66,7 +66,7 @@ private class TalkbackPlayer {
     }
 }
 
-struct AudioUnitAttachParams {
+struct AudioUnitAttachParams: @unchecked Sendable {
     let device: AVCaptureDevice?
     let builtinDelay: Double
     let bufferedAudio: UUID?
@@ -89,7 +89,7 @@ func makeChannelMap(
     return channelMap.map { NSNumber(value: $0) }
 }
 
-final class AudioUnit: NSObject {
+final class AudioUnit: NSObject, @unchecked Sendable {
     let encoder = AudioEncoder(lockQueue: processorPipelineQueue)
     private var input: AVCaptureDeviceInput?
     private var output: AVCaptureAudioDataOutput?
@@ -283,11 +283,10 @@ final class AudioUnit: NSObject {
         guard let bufferedBuiltinAudio, bufferedBuiltinAudio.latency > 0 else {
             return nil
         }
-        var sampleBufferCopy: CMSampleBuffer
-        if bufferedBuiltinAudio.numberOfBuffers() > 4 {
-            sampleBufferCopy = sampleBuffer.deepCopyAudioSampleBuffer() ?? sampleBuffer
+        let sampleBufferCopy: CMSampleBuffer = if bufferedBuiltinAudio.numberOfBuffers() > 4 {
+            sampleBuffer.deepCopyAudioSampleBuffer() ?? sampleBuffer
         } else {
-            sampleBufferCopy = sampleBuffer
+            sampleBuffer
         }
         let presentationTimeStamp = presentationTimeStamp + CMTime(seconds: bufferedBuiltinAudio.latency)
         guard let sampleBuffer = sampleBufferCopy.replacePresentationTimeStamp(presentationTimeStamp) else {

@@ -12,7 +12,7 @@ protocol RtspTransportDelegate: AnyObject {
 }
 
 class RtspTransport {
-    weak var delegate: RtspTransportDelegate?
+    weak var delegate: (any RtspTransportDelegate)?
 
     func start(host _: String, port _: Int) {}
 
@@ -23,13 +23,13 @@ class RtspTransport {
     func sendRtcp(_: Data) {}
 
     func setupTransportHeader() -> String {
-        return ""
+        ""
     }
 
     func handleSetupTransportResponse(_: String) throws {}
 }
 
-class RtspTransportRtpRtspTcp: RtspTransport {
+class RtspTransportRtpRtspTcp: RtspTransport, @unchecked Sendable {
     private let channelStart = "$".first!.asciiValue!
     private var connection: NWConnection?
     private var rtpChannel: UInt8?
@@ -79,7 +79,7 @@ class RtspTransportRtpRtspTcp: RtspTransport {
     }
 
     override func setupTransportHeader() -> String {
-        return "RTP/AVP/TCP;unicast;interleaved=0-1"
+        "RTP/AVP/TCP;unicast;interleaved=0-1"
     }
 
     override func handleSetupTransportResponse(_ value: String) throws {
@@ -177,7 +177,7 @@ class RtspTransportRtpRtspTcp: RtspTransport {
     }
 }
 
-class RtspTransportRtpUdp: RtspTransport {
+class RtspTransportRtpUdp: RtspTransport, @unchecked Sendable {
     private var host: String = ""
     private var port: Int = 554
     private var rtspConnection: NWConnection?

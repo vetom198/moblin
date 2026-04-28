@@ -84,12 +84,14 @@ struct AlertTextToSpeechView: View {
     }
 }
 
+@MainActor
 private func getImageName(model: Model, id: UUID?) -> String {
-    return model.getAllAlertImages().first(where: { $0.id == id })?.name ?? ""
+    model.getAllAlertImages().first(where: { $0.id == id })?.name ?? ""
 }
 
+@MainActor
 private func getSoundName(model: Model, id: UUID?) -> String {
-    return model.getAllAlertSounds().first(where: { $0.id == id })?.name ?? ""
+    model.getAllAlertSounds().first(where: { $0.id == id })?.name ?? ""
 }
 
 private struct VideoPickerView: UIViewControllerRepresentable {

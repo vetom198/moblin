@@ -7,7 +7,7 @@ private struct UrlsView: View {
     let streamKey: String
 
     private func formatUrl(ip: String) -> String {
-        return "rtmp://\(ip):\(port)\(rtmpServerApp)/\(streamKey)"
+        "rtmp://\(ip):\(port)\(rtmpServerApp)/\(streamKey)"
     }
 
     var body: some View {

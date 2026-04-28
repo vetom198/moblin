@@ -5,7 +5,7 @@ class EasyLogger {
     var debugEnabled: Bool = false
 
     private func makeTimestamp() -> String {
-        return Date()
+        Date()
             .formatted(.dateTime.hour().minute().second()
                 .secondFraction(.fractional(3)))
     }
@@ -25,4 +25,4 @@ class EasyLogger {
     }
 }
 
-let logger = EasyLogger()
+nonisolated(unsafe) let logger = EasyLogger()

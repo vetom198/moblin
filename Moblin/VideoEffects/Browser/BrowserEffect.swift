@@ -2,7 +2,7 @@ import SwiftUI
 import Vision
 import WebKit
 
-struct WidgetCrop {
+struct WidgetCrop: @unchecked Sendable {
     let crop: SettingsWidgetCrop
     let sceneWidget: SettingsSceneWidget
 }
@@ -24,9 +24,10 @@ private func createStyleSheetSource(styleSheet: String) -> String? {
 }
 
 private func videoScript() -> String {
-    return loadStringResource(name: "video", ext: "js")
+    loadStringResource(name: "video", ext: "js")
 }
 
+@MainActor
 private func addScript(_ configuration: WKWebViewConfiguration,
                        _ script: String,
                        _ injectionTime: WKUserScriptInjectionTime)
@@ -38,7 +39,7 @@ private func addScript(_ configuration: WKWebViewConfiguration,
     ))
 }
 
-final class BrowserEffect: VideoEffect {
+final class BrowserEffect: VideoEffect, @unchecked Sendable {
     let webView: WKWebView
     private var snapshot: CIImage?
     let width: Double
@@ -58,6 +59,7 @@ final class BrowserEffect: VideoEffect {
     private var suspended = false
     private let snapshotConfiguration: WKSnapshotConfiguration
 
+    @MainActor
     init(
         url: URL,
         styleSheet: String,
@@ -96,14 +98,14 @@ final class BrowserEffect: VideoEffect {
     }
 
     deinit {
-        webView.configuration.userContentController.removeAllScriptMessageHandlers()
         stopTakeSnapshots()
     }
 
     override func isEnabled() -> Bool {
-        return mode != .audioOnly && snapshot != nil
+        mode != .audioOnly && snapshot != nil
     }
 
+    @MainActor
     func sendChatMessage(post: ChatPost) {
         server.sendChatMessage(post: post)
     }
@@ -112,6 +114,7 @@ final class BrowserEffect: VideoEffect {
         url.host() ?? "?"
     }
 
+    @MainActor
     var progress: Int {
         Int(100 * webView.estimatedProgress)
     }
@@ -120,10 +123,12 @@ final class BrowserEffect: VideoEffect {
         stopTakeSnapshots()
     }
 
+    @MainActor
     func reload() {
         webView.reload()
     }
 
+    @MainActor
     func setSceneWidget(sceneWidget: SettingsSceneWidget?, crops: [WidgetCrop]) {
         stopTakeSnapshots()
         if sceneWidget != nil || !crops.isEmpty {
@@ -158,6 +163,7 @@ final class BrowserEffect: VideoEffect {
         return image
     }
 
+    @MainActor
     private func setSceneWidgetEnabled(sceneWidget: SettingsSceneWidget?, crops: [WidgetCrop]) {
         processorPipelineQueue.async {
             self.sceneWidget = sceneWidget
@@ -173,6 +179,7 @@ final class BrowserEffect: VideoEffect {
         startTakeSnapshots()
     }
 
+    @MainActor
     private func setSceneWidgetLoaded() {
         processorPipelineQueue.async {
             self.snapshot = nil
@@ -213,7 +220,7 @@ final class BrowserEffect: VideoEffect {
                 return
             }
             let takeSnapshotBeginTime = ContinuousClock.now
-            self.webView.takeSnapshot(with: snapshotConfiguration) { [weak self] image, _ in
+            webView.takeSnapshot(with: snapshotConfiguration) { [weak self] image, _ in
                 guard let self, !stopped, !suspended else {
                     return
                 }

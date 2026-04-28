@@ -101,12 +101,12 @@ private class Relay {
             guard let self else {
                 return
             }
-            if self.pongReceived {
-                self.pongReceived = false
-                self.webSocket.connection.sendWebSocket(data: nil, opcode: .ping)
+            if pongReceived {
+                pongReceived = false
+                webSocket.connection.sendWebSocket(data: nil, opcode: .ping)
             } else {
                 logger.info("moblink-streamer: \(name): Ping timeout")
-                self.webSocket.connection.cancel()
+                webSocket.connection.cancel()
             }
         }
     }
@@ -226,28 +226,30 @@ private class Relay {
     }
 }
 
-class MoblinkStreamer: NSObject {
+class MoblinkStreamer: NSObject, @unchecked Sendable {
     private let port: UInt16
     private let password: String
+    private let name: String
     private var server: NWListener?
     var connectionErrorMessage = ""
     private var retryStartTimer = SimpleTimer(queue: .main)
-    fileprivate weak var delegate: MoblinkStreamerDelegate?
+    fileprivate weak var delegate: (any MoblinkStreamerDelegate)?
     private var relays: [Relay] = []
     private var destinationAddress: String?
     private var destinationPort: UInt16?
     @AppStorage("moblinkServerId") var id = ""
 
-    init(port: UInt16, password: String) {
+    init(port: UInt16, password: String, name: String) {
         self.port = port
         self.password = password
+        self.name = name
         super.init()
         if id.isEmpty {
             id = UUID().uuidString
         }
     }
 
-    func start(delegate: MoblinkStreamerDelegate) {
+    func start(delegate: any MoblinkStreamerDelegate) {
         stop()
         logger.debug("moblink-streamer: start")
         self.delegate = delegate
@@ -283,7 +285,7 @@ class MoblinkStreamer: NSObject {
     }
 
     func getStatuses() -> [(String, Int?, MoblinkThermalState?)] {
-        return relays
+        relays
             .sorted(by: { $0.name < $1.name })
             .map { ($0.name, $0.batteryPercentage, $0.thermalState) }
     }
@@ -305,7 +307,7 @@ class MoblinkStreamer: NSObject {
                 name: id,
                 type: moblinkBonjourType,
                 domain: moblinkBonjourDomain,
-                txtRecord: NWTXTRecord(["name": UIDevice.current.name])
+                txtRecord: NWTXTRecord(["name": name])
             )
             server?.newConnectionHandler = handleNewConnection
             server?.start(queue: .main)

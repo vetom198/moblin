@@ -4,7 +4,7 @@ import CoreImage
 import MetalPetal
 import SwiftUI
 import VideoToolbox
-import Vision
+@preconcurrency import Vision
 
 private let deltaLimit = 0.03
 
@@ -15,7 +15,7 @@ struct DetectionJob {
     let detectText: Bool
 }
 
-struct VideoUnitAttachParams {
+struct VideoUnitAttachParams: @unchecked Sendable {
     let devices: CaptureDevices
     let builtinDelay: Double
     let cameraPreviewLayer: AVCaptureVideoPreviewLayer
@@ -81,8 +81,8 @@ struct CaptureDevices {
     var devices: [CaptureDevice]
 }
 
-var pixelFormatType = kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
-var allowVideoRangePixelFormat = false
+nonisolated(unsafe) var pixelFormatType = kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
+nonisolated(unsafe) var allowVideoRangePixelFormat = false
 private let detectionsQueue = DispatchQueue(
     label: "com.haishinkit.HaishinKit.Detections",
     attributes: .concurrent
@@ -115,7 +115,7 @@ struct Detections {
     let text: [TextDetection]
 }
 
-private class DetectionsCompletion {
+private class DetectionsCompletion: @unchecked Sendable {
     let sequenceNumber: UInt64
     let sampleBuffer: CMSampleBuffer
     let isFirstAfterAttach: Bool
@@ -159,7 +159,7 @@ private func makeCaptureSession() -> AVCaptureSession {
     return session
 }
 
-final class VideoUnit: NSObject {
+final class VideoUnit: NSObject, @unchecked Sendable {
     static let defaultFrameRate: Float64 = 30
     private var device: AVCaptureDevice?
     private var captureSessionDevices: [CaptureSessionDevice] = []
@@ -203,7 +203,7 @@ final class VideoUnit: NSObject {
     private var lowFpsImageLatest: Double = 0.0
     private var lowFpsImageFrameNumber: UInt64 = 0
     private var takeSnapshotAge: Float = 0.0
-    private var takeSnapshotComplete: ((UIImage, CIImage, CIImage) -> Void)?
+    private var takeSnapshotComplete: (@MainActor (UIImage, CIImage, CIImage) -> Void)?
     private var takeSnapshotSampleBuffers: Deque<CMSampleBuffer> = []
     private var cleanRecordings = false
     private var cleanSnapshots = false
@@ -243,7 +243,7 @@ final class VideoUnit: NSObject {
             }
             session.beginConfiguration()
             for device in captureSessionDevices {
-                for connection in device.output.connections.filter({ $0.isVideoOrientationSupported }) {
+                for connection in device.output.connections.filter(\.isVideoOrientationSupported) {
                     setOrientation(device: device.device.device,
                                    isLandscapeStreamAndPortraitUi: isLandscapeStreamAndPortraitUi,
                                    connection: connection,
@@ -310,7 +310,7 @@ final class VideoUnit: NSObject {
     }
 
     func getFps() -> Double {
-        return fps
+        fps
     }
 
     func setColorSpace(colorSpace: AVCaptureColorSpace) {
@@ -405,7 +405,7 @@ final class VideoUnit: NSObject {
         }
     }
 
-    func takeSnapshot(age: Float, onComplete: @escaping (UIImage, CIImage, CIImage) -> Void) {
+    func takeSnapshot(age: Float, onComplete: @escaping @MainActor (UIImage, CIImage, CIImage) -> Void) {
         processorPipelineQueue.async {
             self.takeSnapshotAge = age
             self.takeSnapshotComplete = onComplete
@@ -674,7 +674,7 @@ final class VideoUnit: NSObject {
     }
 
     private func makePresentationTimeStamp() -> CMTime {
-        return CMTime(value: outputCounter, timescale: Int32(fps)) + startPresentationTimeStamp
+        CMTime(value: outputCounter, timescale: Int32(fps)) + startPresentationTimeStamp
     }
 
     private func handleFrameTimer() {
@@ -1012,13 +1012,13 @@ final class VideoUnit: NSObject {
     private func rotateCoreImage(_ image: CIImage, _ rotation: Double) -> CIImage {
         switch rotation {
         case 90:
-            return image.oriented(.right)
+            image.oriented(.right)
         case 180:
-            return image.oriented(.down)
+            image.oriented(.down)
         case 270:
-            return image.oriented(.left)
+            image.oriented(.left)
         default:
-            return image
+            image
         }
     }
 
@@ -1339,7 +1339,9 @@ final class VideoUnit: NSObject {
     }
 
     private func detectObjects(detectionJob: DetectionJob, completion: DetectionsCompletion) {
+        nonisolated(unsafe)
         var faceDetections: [VNFaceObservation] = []
+        nonisolated(unsafe)
         var textDetections: [TextDetection] = []
         var faceLandmarksRequest: VNDetectFaceLandmarksRequest?
         var textRequest: VNRecognizeTextRequest?
@@ -1529,10 +1531,12 @@ final class VideoUnit: NSObject {
                                   _ sampleBuffers: Deque<CMSampleBuffer>,
                                   _ presentationTimeStamp: Double,
                                   _ age: Float,
-                                  _ onCompleted: @escaping (CVImageBuffer?) -> Void)
+                                  _ onCompleted: @escaping @MainActor (CVImageBuffer?) -> Void)
     {
         if age == 0.0 {
-            onCompleted(sampleBuffer.imageBuffer)
+            DispatchQueue.main.async {
+                onCompleted(sampleBuffer.imageBuffer)
+            }
         } else {
             let requestedPresentationTimeStamp = presentationTimeStamp - Double(age)
             let sampleBufferAtAge = sampleBuffers.last(where: {
@@ -1543,7 +1547,9 @@ final class VideoUnit: NSObject {
                 sampleBuffers.append(sampleBuffer)
                 findBestSnapshotUsingAesthetics(sampleBufferAtAge, sampleBuffers, onCompleted)
             } else {
-                onCompleted(sampleBufferAtAge.imageBuffer)
+                DispatchQueue.main.async {
+                    onCompleted(sampleBufferAtAge.imageBuffer)
+                }
             }
         }
     }
@@ -1551,7 +1557,7 @@ final class VideoUnit: NSObject {
     @available(iOS 18, *)
     private func findBestSnapshotUsingAesthetics(_ preferredSampleBuffer: CMSampleBuffer,
                                                  _ sampleBuffers: Deque<CMSampleBuffer>,
-                                                 _ onComplete: @escaping (CVImageBuffer?) -> Void)
+                                                 _ onComplete: @escaping @MainActor (CVImageBuffer?) -> Void)
     {
         Task {
             var bestSampleBuffer = preferredSampleBuffer
@@ -1568,7 +1574,9 @@ final class VideoUnit: NSObject {
                     bestResult = result
                 }
             }
-            onComplete(bestSampleBuffer.imageBuffer)
+            DispatchQueue.main.async {
+                onComplete(bestSampleBuffer.imageBuffer)
+            }
         }
     }
 
@@ -1576,9 +1584,9 @@ final class VideoUnit: NSObject {
                               _ sampleBuffers: Deque<CMSampleBuffer>,
                               _ presentationTimeStamp: Double,
                               _ age: Float,
-                              _ onComplete: @escaping (UIImage, CIImage, CIImage) -> Void)
+                              _ onComplete: @escaping @MainActor (UIImage, CIImage, CIImage) -> Void)
     {
-        findBestSnapshot(sampleBuffer, sampleBuffers, presentationTimeStamp, age) { imageBuffer in
+        findBestSnapshot(sampleBuffer, sampleBuffers, presentationTimeStamp, age) { @MainActor imageBuffer in
             guard let imageBuffer else {
                 return
             }
@@ -1677,11 +1685,10 @@ final class VideoUnit: NSObject {
     ) -> [DetectionJob] {
         var detectionJobs: [DetectionJob] = []
         for videoSourceId in faceDetectionVideoSourceIds.union(textDetectionVideoSourceIds) {
-            var videoSourceImageBuffer: CVPixelBuffer?
-            if videoSourceId == sceneVideoSourceId {
-                videoSourceImageBuffer = imageBuffer
+            let videoSourceImageBuffer: CVPixelBuffer? = if videoSourceId == sceneVideoSourceId {
+                imageBuffer
             } else {
-                videoSourceImageBuffer = bufferedVideos[videoSourceId]?
+                bufferedVideos[videoSourceId]?
                     .getSampleBuffer(presentationTimeStamp)?
                     .imageBuffer
             }
@@ -1753,7 +1760,7 @@ final class VideoUnit: NSObject {
         var formats = device.formats
         formats = formats.filter { $0.isFrameRateSupported(fps) }
         if #available(iOS 18, *), preferAutoFrameRate {
-            let autoFrameRateFormats = formats.filter { $0.isAutoVideoFrameRateSupported }
+            let autoFrameRateFormats = formats.filter(\.isAutoVideoFrameRateSupported)
             if !autoFrameRateFormats.isEmpty {
                 formats = autoFrameRateFormats
                 useAutoFrameRate = true
@@ -2000,8 +2007,9 @@ final class VideoUnit: NSObject {
         guard cameraControlsEnabled, let device else {
             return
         }
+        let displayVideoZoomFactorMultiplier = device.displayVideoZoomFactorMultiplier
         let zoomSlider = AVCaptureSystemZoomSlider(device: device) { [weak self] zoomFactor in
-            let x = Float(device.displayVideoZoomFactorMultiplier * zoomFactor)
+            let x = Float(displayVideoZoomFactorMultiplier * zoomFactor)
             self?.processor?.delegate.streamSetZoomX(x: x)
         }
         if session.canAddControl(zoomSlider) {
@@ -2035,11 +2043,10 @@ final class VideoUnit: NSObject {
             bufferedVideo.setLatestSampleBuffer(sampleBuffer)
             return nil
         }
-        var sampleBufferCopy: CMSampleBuffer
-        if bufferedVideo.numberOfBuffers() > 4 {
-            sampleBufferCopy = makeCopy(sampleBuffer: sampleBuffer) ?? sampleBuffer
+        var sampleBufferCopy: CMSampleBuffer = if bufferedVideo.numberOfBuffers() > 4 {
+            makeCopy(sampleBuffer: sampleBuffer) ?? sampleBuffer
         } else {
-            sampleBufferCopy = sampleBuffer
+            sampleBuffer
         }
         let presentationTimeStamp = sampleBufferCopy
             .presentationTimeStamp + CMTime(seconds: bufferedVideo.latency)
@@ -2050,7 +2057,7 @@ final class VideoUnit: NSObject {
     }
 
     private func isSceneVideoSource(device: AVCaptureDevice) -> Bool {
-        return captureSessionDevices.first(where: { $0.device.device == device })?.device
+        captureSessionDevices.first(where: { $0.device.device == device })?.device
             .id == sceneVideoSourceId
     }
 
@@ -2106,7 +2113,7 @@ extension VideoUnit: AVCaptureVideoDataOutputSampleBufferDelegate {
 }
 
 private func createBlackImage(width: Double, height: Double) -> CIImage {
-    return CIImage.black.cropped(to: CGRect(x: 0, y: 0, width: width, height: height))
+    CIImage.black.cropped(to: CGRect(x: 0, y: 0, width: width, height: height))
 }
 
 @available(iOS 18.0, *)

@@ -209,18 +209,19 @@ private struct BitrateStatusView: View {
     }
 }
 
+@MainActor
 private func netStreamColor(model: Model) -> Color {
     if model.isStreaming() {
         switch model.streamState {
         case .connecting:
-            return .white
+            .white
         case .connected:
-            return .white
+            .white
         case .disconnected:
-            return .red
+            .red
         }
     } else {
-        return .white
+        .white
     }
 }
 
@@ -311,7 +312,7 @@ private struct MoblinkStatusView: View {
     let textPlacement: StreamOverlayIconAndTextPlacement
 
     private func color() -> Color {
-        if model.isMoblinkRelayConfigured() && !model.areMoblinkRelaysOk() {
+        if model.isMoblinkRelayConfigured(), !model.areMoblinkRelaysOk() {
             return .red
         }
         if !moblink.streamerOk {
@@ -344,9 +345,9 @@ private struct RemoteControlStatusView: View {
     let textPlacement: StreamOverlayIconAndTextPlacement
 
     private func remoteControlColor() -> Color {
-        if model.isRemoteControlStreamerConfigured() && !model.isRemoteControlStreamerConnected() {
+        if model.isRemoteControlStreamerConfigured(), !model.isRemoteControlStreamerConnected() {
             return .red
-        } else if model.isRemoteControlAssistantConfigured() && !model.isRemoteControlAssistantConnected() {
+        } else if model.isRemoteControlAssistantConfigured(), !model.isRemoteControlAssistantConnected() {
             return .red
         }
         return .white
@@ -487,7 +488,7 @@ private struct CatPrinterStatusView: View {
     let textPlacement: StreamOverlayIconAndTextPlacement
 
     private func catPrinterColor() -> Color {
-        if model.isAnyCatPrinterConfigured() && !model.areAllCatPrintersConnected() {
+        if model.isAnyCatPrinterConfigured(), !model.areAllCatPrintersConnected() {
             return .red
         }
         return .white
@@ -513,7 +514,7 @@ private struct WorkoutDeviceStatusView: View {
     let textPlacement: StreamOverlayIconAndTextPlacement
 
     private func workoutDeviceColor() -> Color {
-        if model.isAnyWorkoutDeviceConfigured() && !model.areAllWorkoutDevicesConnected() {
+        if model.isAnyWorkoutDeviceConfigured(), !model.areAllWorkoutDevicesConnected() {
             return .red
         }
         return .white
@@ -777,7 +778,7 @@ private struct RightOverlayBottomVerticalView: View {
                                                                     show: model.camera.show)
                     }
                 }
-                if show.zoomPresets && zoom.hasZoom {
+                if show.zoomPresets, zoom.hasZoom {
                     StreamOverlayRightZoomPresetVSelctorView(model: model,
                                                              zoom: zoom,
                                                              width: width)
@@ -817,7 +818,7 @@ private struct RightOverlayBottomHorizontalView: View {
                                                             camera: model.camera,
                                                             show: model.camera.show)
             }
-            if show.zoomPresets && zoom.hasZoom {
+            if show.zoomPresets, zoom.hasZoom {
                 StreamOverlayRightZoomPresetSelctorView(model: model,
                                                         zoom: zoom,
                                                         width: width)
@@ -848,7 +849,7 @@ struct RightOverlayBottomView: View {
                 } else if streamOverlay.showingBeauty {
                     StreamOverlayRightBeautyView(model: model, beauty: database.beauty)
                 } else if streamOverlay.showingVideoPreview {
-                    if show.zoomPresets && zoom.hasZoom {
+                    if show.zoomPresets, zoom.hasZoom {
                         StreamOverlayRightZoomPresetSelctorView(model: model,
                                                                 zoom: zoom,
                                                                 width: width)

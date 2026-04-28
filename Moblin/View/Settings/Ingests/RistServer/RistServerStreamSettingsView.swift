@@ -7,7 +7,7 @@ private struct UrlsView: View {
     let virtualDestinationPort: UInt16
 
     private func formatUrl(ip: String) -> String {
-        return "rist://\(ip):\(port)?virt-dst-port=\(virtualDestinationPort)"
+        "rist://\(ip):\(port)?virt-dst-port=\(virtualDestinationPort)"
     }
 
     var body: some View {

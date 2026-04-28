@@ -48,12 +48,14 @@ class PreviewView: UIView {
 
     override func awakeFromNib() {
         super.awakeFromNib()
-        backgroundColor = Self.defaultBackgroundColor
-        layer.backgroundColor = Self.defaultBackgroundColor.cgColor
-        layer.videoGravity = videoGravity
+        DispatchQueue.main.async {
+            self.backgroundColor = Self.defaultBackgroundColor
+            self.layer.backgroundColor = Self.defaultBackgroundColor.cgColor
+            self.layer.videoGravity = self.videoGravity
+        }
     }
 
-    func enqueue(_ sampleBuffer: CMSampleBuffer?, isFirstAfterAttach: Bool) {
+    nonisolated func enqueue(_ sampleBuffer: CMSampleBuffer?, isFirstAfterAttach: Bool) {
         guard let sampleBuffer else {
             return
         }

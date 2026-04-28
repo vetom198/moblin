@@ -2,7 +2,7 @@ import NetworkExtension
 import SwiftUI
 
 func qrCodeHeight(_ metrics: GeometryProxy) -> Double {
-    return metrics.size.width * 0.5
+    metrics.size.width * 0.5
 }
 
 private struct GoProLaunchLiveStreamSettingsView: View {
@@ -127,12 +127,17 @@ private struct GoProWifiCredentialsSettingsView: View {
             }
             .navigationTitle("WiFi credentials")
             .onAppear {
-                NEHotspotNetwork.fetchCurrent(completionHandler: { network in
-                    if wifiCredentials.ssid.isEmpty, let network {
-                        wifiCredentials.ssid = network.ssid
-                        generate()
+                NEHotspotNetwork.fetchCurrent { network in
+                    guard let ssid = network?.ssid else {
+                        return
                     }
-                })
+                    DispatchQueue.main.async {
+                        if wifiCredentials.ssid.isEmpty {
+                            wifiCredentials.ssid = ssid
+                            generate()
+                        }
+                    }
+                }
             }
         }
     }
@@ -156,7 +161,7 @@ private struct GoProWifiCredentialsSettingsEntryView: View {
 }
 
 private func rtmpStreamUrl(address: String, port: UInt16, streamKey: String) -> String {
-    return "rtmp://\(address):\(port)\(rtmpServerApp)/\(streamKey)"
+    "rtmp://\(address):\(port)\(rtmpServerApp)/\(streamKey)"
 }
 
 private struct GoProRtmpUrlSettingsView: View {

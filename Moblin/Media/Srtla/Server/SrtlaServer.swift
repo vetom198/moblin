@@ -22,20 +22,20 @@ protocol SrtlaServerDelegate: AnyObject {
     )
 }
 
-class SrtlaServer {
+class SrtlaServer: @unchecked Sendable {
     private var listener: NWListener?
     private var clients: [Data: SrtlaServerClient] = [:]
     let settings: SettingsSrtlaServer
     private let srtServer: SrtServer
     private let srtServerNoSrtlaPatches: SrtServer
-    let delegate: SrtlaServerDelegate
+    let delegate: any SrtlaServerDelegate
     private let periodicTimer = SimpleTimer(queue: srtlaServerQueue)
     let bitrateStats: Atomic<BitrateStats> = .init(BitrateStats())
     private var numberOfClients: Atomic<Int> = .init(0)
     var connectedStreamIds: Atomic<[String]> = .init(.init())
 
     init(settings: SettingsSrtlaServer,
-         delegate: SrtlaServerDelegate,
+         delegate: any SrtlaServerDelegate,
          timecodesEnabled: Bool)
     {
         self.settings = settings.clone()
@@ -73,10 +73,11 @@ class SrtlaServer {
     }
 
     func isStreamConnected(streamId: String) -> Bool {
-        return connectedStreamIds.value.contains(streamId)
+        connectedStreamIds.value.contains(streamId)
     }
 
     func updateStats() -> BitrateStatsInstant {
+        nonisolated(unsafe)
         var result: BitrateStatsInstant?
         bitrateStats.mutate {
             result = $0.update()
@@ -85,7 +86,7 @@ class SrtlaServer {
     }
 
     func getNumberOfClients() -> Int {
-        return numberOfClients.value
+        numberOfClients.value
     }
 
     func clientConnected(cameraId: UUID, name: String) {

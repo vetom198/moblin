@@ -118,50 +118,51 @@ func lutEffectConvertLut(image: UIImage) throws -> (Float, Data) {
     return (Float(dimension), Data(bytes: originalCube, count: numberOutputOfComponents * 4))
 }
 
-final class LutEffect: VideoEffect {
-    private var filter: (CIFilter & CIColorCubeWithColorSpace)?
+final class LutEffect: VideoEffect, @unchecked Sendable {
+    private var filter: (any CIFilter & CIColorCubeWithColorSpace)?
 
     func setLut(
         lut: SettingsColorLut?,
         imageStorage: ImageStorage,
-        onError: @escaping (String, String?) -> Void
+        onError: @escaping @MainActor (String, String?) -> Void
     ) {
         DispatchQueue.global().async {
             do {
                 try self.loadLut(lut: lut, imageStorage: imageStorage)
             } catch {
-                let subTitle: String
-                switch error {
+                let subTitle = switch error {
                 case SwiftCubeError.couldNotDecodeData:
-                    subTitle = "Not a text file"
+                    "Not a text file"
                 case SwiftCubeError.sizeMissing:
-                    subTitle = "Size missing"
+                    "Size missing"
                 case let SwiftCubeError.sizeTooBig(size):
-                    subTitle = "Size \(size) too big"
+                    "Size \(size) too big"
                 case SwiftCubeError.oneDimensionalLutNotSupported:
-                    subTitle = "One dimensional LUT not supported"
+                    "One dimensional LUT not supported"
                 case let SwiftCubeError.unsupportedKey(key):
-                    subTitle = "Unsupported key \(key)"
+                    "Unsupported key \(key)"
                 case SwiftCubeError.invalidType:
-                    subTitle = "Invalid type"
+                    "Invalid type"
                 case SwiftCubeError.typeMissing:
-                    subTitle = "Type missing"
+                    "Type missing"
                 case let SwiftCubeError.invalidDataPoint(point):
-                    subTitle = "Invalid data point \(point)"
+                    "Invalid data point \(point)"
                 case let SwiftCubeError.wrongNumberOfDataPoints(count):
-                    subTitle = "Wrong number of data points \(count)"
+                    "Wrong number of data points \(count)"
                 case let SwiftCubeError.invalidSyntax(text):
-                    subTitle = "Invalid syntax \(text)"
+                    "Invalid syntax \(text)"
                 default:
-                    subTitle = "\(error)"
+                    "\(error)"
                 }
-                onError(String(localized: "Failed to load .cube file"), subTitle)
+                DispatchQueue.main.async {
+                    onError(String(localized: "Failed to load .cube file"), subTitle)
+                }
             }
         }
     }
 
     override func isEnabled() -> Bool {
-        return filter != nil
+        filter != nil
     }
 
     override func execute(_ image: CIImage, _: VideoEffectInfo) -> CIImage {
@@ -213,6 +214,7 @@ final class LutEffect: VideoEffect {
             }
             sc3dLut.size = 64
         }
+        nonisolated(unsafe)
         let filter = try sc3dLut.ciFilter()
         processorPipelineQueue.async {
             self.filter = filter
@@ -221,6 +223,7 @@ final class LutEffect: VideoEffect {
 
     private func loadImageLut(image: UIImage) throws {
         let (dimension, data) = try lutEffectConvertLut(image: image)
+        nonisolated(unsafe)
         let filter = CIFilter.colorCubeWithColorSpace()
         filter.cubeData = data
         filter.cubeDimension = dimension

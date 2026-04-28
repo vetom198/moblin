@@ -1,6 +1,7 @@
 import SwiftUI
 
 @available(iOS 17, *)
+@MainActor
 private struct ControlBarPageScrollTargetBehavior: ScrollTargetBehavior {
     let model: Model
 
@@ -22,9 +23,9 @@ private struct QuickButtonsView: View {
 
     private func buttonSize() -> Double {
         if quickButtonsSettings.bigButtons {
-            return controlBarQuickButtonSingleQuickButtonSize
+            controlBarQuickButtonSingleQuickButtonSize
         } else {
-            return controlBarButtonSize
+            controlBarButtonSize
         }
     }
 

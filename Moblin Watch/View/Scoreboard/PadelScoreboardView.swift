@@ -1,3 +1,4 @@
+import Combine
 import SwiftUI
 
 let teamRowHeight: CGFloat = 32
@@ -19,11 +20,11 @@ struct PadelScoreboardScore: Identifiable {
     var away: Int
 
     func isHomeWin() -> Bool {
-        return isSetWin(first: home, second: away)
+        isSetWin(first: home, second: away)
     }
 
     func isAwayWin() -> Bool {
-        return isSetWin(first: away, second: home)
+        isSetWin(first: away, second: home)
     }
 }
 

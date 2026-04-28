@@ -7,7 +7,7 @@ private struct UrlsView: View {
     let streamKey: String
 
     private func formatUrl(ip: String) -> String {
-        return "whip://\(ip):\(port)/whip/stream/\(streamKey)"
+        "whip://\(ip):\(port)/whip/stream/\(streamKey)"
     }
 
     var body: some View {

@@ -19,7 +19,7 @@ class SettingsSelfieStick: Codable, ObservableObject {
              macroId
     }
 
-    func encode(to encoder: Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(.enabled, enabled)
         try container.encode(.function, function)
@@ -32,7 +32,7 @@ class SettingsSelfieStick: Codable, ObservableObject {
 
     init() {}
 
-    required init(from decoder: Decoder) throws {
+    required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         enabled = container.decode(.enabled, Bool.self, false)
         function = container.decode(.function, SettingsControllerFunction.self, .switchScene)

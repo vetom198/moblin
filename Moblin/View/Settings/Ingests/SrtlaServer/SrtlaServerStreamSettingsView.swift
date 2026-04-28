@@ -8,7 +8,7 @@ private struct UrlsView: View {
     let streamId: String
 
     private func title() -> String {
-        return String(localized: "\(proto.uppercased()) URLs")
+        String(localized: "\(proto.uppercased()) URLs")
     }
 
     private func formatUrl(ip: String) -> String {

@@ -19,7 +19,7 @@ private struct RemoteControlRequestResponse {
     let onError: (String) -> Void
 }
 
-class RemoteControlAssistant: NSObject {
+class RemoteControlAssistant: NSObject, @unchecked Sendable {
     private let port: UInt16
     private let password: String
     private var connected: Bool = false
@@ -29,7 +29,7 @@ class RemoteControlAssistant: NSObject {
     var connectionErrorMessage = ""
     private var streamerWebSocket: NWConnection?
     private var retryStartTimer = SimpleTimer(queue: .main)
-    private weak var delegate: RemoteControlAssistantDelegate?
+    private weak var delegate: (any RemoteControlAssistantDelegate)?
     private var streamerIdentified = false
     private var challenge = ""
     private var salt = ""
@@ -51,7 +51,7 @@ class RemoteControlAssistant: NSObject {
     init(
         port: UInt16,
         password: String,
-        delegate: RemoteControlAssistantDelegate
+        delegate: any RemoteControlAssistantDelegate
     ) {
         self.port = port
         self.password = password
@@ -81,7 +81,7 @@ class RemoteControlAssistant: NSObject {
     }
 
     func isConnected() -> Bool {
-        return connected
+        connected
     }
 
     func getStatus(onSuccess: @escaping (
@@ -273,7 +273,7 @@ class RemoteControlAssistant: NSObject {
 
     private func sendChatMessageHistory() {
         performRequestNoResponseData(
-            data: .chatMessages(history: true, messages: chatMessageHistory.map { $0 }),
+            data: .chatMessages(history: true, messages: chatMessageHistory.map(\.self)),
             onSuccess: {}
         )
     }
@@ -310,12 +310,12 @@ class RemoteControlAssistant: NSObject {
             guard let self else {
                 return
             }
-            if self.pongReceived {
-                self.pongReceived = false
-                self.streamerWebSocket?.sendWebSocket(data: nil, opcode: .ping)
+            if pongReceived {
+                pongReceived = false
+                streamerWebSocket?.sendWebSocket(data: nil, opcode: .ping)
             } else {
                 logger.info("remote-control-assistant: Ping timeout")
-                self.closeStreamer()
+                closeStreamer()
             }
         }
     }
