@@ -1,6 +1,19 @@
 import Foundation
 
 extension Model {
+    func setGimbalAutomatic(on: Bool) {
+        database.gimbal.automatic = on
+        if #available(iOS 18.0, *) {
+            Gimbal.shared?.setAutomatic(on: on)
+        }
+        setQuickButton(type: .gimbalAutomatic, isOn: on)
+        updateQuickButtonStates()
+    }
+
+    func toggleGimbalAutomatic() {
+        setGimbalAutomatic(on: !database.gimbal.automatic)
+    }
+
     func saveGimbalPreset(id: UUID?) {
         guard #available(iOS 18.0, *) else {
             return

@@ -429,6 +429,10 @@ struct QuickButtonsInnerView: View {
         model.toggleShowingPanel(type: .macros, panel: .macros)
     }
 
+    private func gimbalAutomaticAction() {
+        model.toggleGimbalAutomatic()
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             ZStack {
@@ -995,6 +999,14 @@ struct QuickButtonsInnerView: View {
                                          buttonSize: size)
                         {
                             macrosAction()
+                        }
+                    case .gimbalAutomatic:
+                        QuickButtonImage(model: model,
+                                         quickButtonsSettings: quickButtonsSettings,
+                                         state: state,
+                                         buttonSize: size)
+                        {
+                            gimbalAutomaticAction()
                         }
                     }
                 }

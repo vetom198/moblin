@@ -191,6 +191,10 @@ extension Model {
             if !pressed {
                 toggleBeautyQuickButton()
             }
+        case .gimbalAutomatic:
+            if !pressed {
+                toggleGimbalAutomatic()
+            }
         }
     }
 

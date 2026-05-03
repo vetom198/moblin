@@ -41,6 +41,7 @@ class SettingsGimbal: Codable, ObservableObject {
     static let zoomSpeedDefault: Float = 50
     @Published var zoomSpeed: Float = zoomSpeedDefault
     @Published var naturalZoom: Bool = true
+    @Published var automatic: Bool = true
     @Published var functionShutter: SettingsControllerFunction = .record
     @Published var shutterSceneId: UUID?
     @Published var shutterWidgetId: UUID?
@@ -56,6 +57,7 @@ class SettingsGimbal: Codable, ObservableObject {
     enum CodingKeys: CodingKey {
         case zoomSpeed,
              naturalZoom,
+             automatic,
              functionShutter,
              shutterSceneId,
              shutterWidgetId,
@@ -73,6 +75,7 @@ class SettingsGimbal: Codable, ObservableObject {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(.zoomSpeed, zoomSpeed)
         try container.encode(.naturalZoom, naturalZoom)
+        try container.encode(.automatic, automatic)
         try container.encode(.functionShutter, functionShutter)
         try container.encode(.shutterSceneId, shutterSceneId)
         try container.encode(.shutterWidgetId, shutterWidgetId)
@@ -92,6 +95,7 @@ class SettingsGimbal: Codable, ObservableObject {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         zoomSpeed = container.decode(.zoomSpeed, Float.self, Self.zoomSpeedDefault)
         naturalZoom = container.decode(.naturalZoom, Bool.self, true)
+        automatic = container.decode(.automatic, Bool.self, true)
         functionShutter = container.decode(.functionShutter, SettingsControllerFunction.self, .record)
         shutterSceneId = container.decode(.shutterSceneId, UUID?.self, nil)
         shutterWidgetId = container.decode(.shutterWidgetId, UUID?.self, nil)

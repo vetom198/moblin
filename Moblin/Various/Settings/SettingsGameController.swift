@@ -101,6 +101,7 @@ enum SettingsControllerFunction: String, Codable, CaseIterable {
     case privacy = "Privacy"
     case beauty = "Beauty"
     case cameraMan = "Camera man"
+    case gimbalAutomatic = "Gimbal automatic"
 
     func toString() -> String {
         switch self {
@@ -176,6 +177,8 @@ enum SettingsControllerFunction: String, Codable, CaseIterable {
             return String(localized: "Beauty")
         case .cameraMan:
             return String(localized: "Camera man")
+        case .gimbalAutomatic:
+            return String(localized: "Gimbal automatic")
         }
     }
 
@@ -281,6 +284,8 @@ enum SettingsControllerFunction: String, Codable, CaseIterable {
             return .filters
         case .cameraMan:
             return .filters
+        case .gimbalAutomatic:
+            return .general
         }
     }
 }

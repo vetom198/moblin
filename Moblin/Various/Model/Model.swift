@@ -1156,6 +1156,7 @@ final class Model: NSObject, ObservableObject, @unchecked Sendable {
         setQuickButton(type: .privacy, isOn: database.face.blurBackground)
         setQuickButton(type: .moblinInMouth, isOn: database.face.showMoblin)
         setQuickButton(type: .beauty, isOn: database.beauty.enabled)
+        setQuickButton(type: .gimbalAutomatic, isOn: database.gimbal.automatic)
         updateLutsButtonState()
         updateAutoSceneSwitcherButtonState()
         reloadNtpClient()

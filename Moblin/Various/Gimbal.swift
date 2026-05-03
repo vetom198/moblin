@@ -67,13 +67,24 @@ class Gimbal {
         }
     }
 
+    func setAutomatic(on: Bool) {
+        Task { @MainActor [weak self] in
+            do {
+                try await DockAccessoryManager.shared.setSystemTrackingEnabled(on)
+            } catch {
+                logger.info("gimbal: Set automatic error: \(error)")
+            }
+        }
+    }
+
     private func startAccessoryEventsHandler(accessory: DockAccessory) {
         stopAccessoryEventsHandler()
         self.accessory = accessory
         shutterCount = 0
         accessoryTask = Task { @MainActor [weak self] in
             do {
-                try await DockAccessoryManager.shared.setSystemTrackingEnabled(false)
+                let automatic = self?.model.database.gimbal.automatic ?? true
+                try await DockAccessoryManager.shared.setSystemTrackingEnabled(automatic)
                 for await event in try accessory.accessoryEvents {
                     self?.handleAccessoryEvent(event)
                 }
