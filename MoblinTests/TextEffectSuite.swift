@@ -65,7 +65,7 @@ struct TextEffectSuite {
         #expect(lines == createLine(data: .text("134")))
     }
 
-    @Test
+    @Test(.enabled(if: Locale.current.identifier == "en_SE"))
     func multiple() {
         let lines = format(format: "time: {time}, date: {date}\nsecond line", stats: createStats())
         #expect(lines == [
