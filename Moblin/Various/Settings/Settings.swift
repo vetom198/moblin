@@ -1140,6 +1140,7 @@ class Database: Codable, ObservableObject {
     var beauty: SettingsBeauty = .init()
     var talkback: SettingsTalkback = .init()
     var gimbal: SettingsGimbal = .init()
+    var atemDevices: SettingsAtemDevices = .init()
 
     static func fromString(settings: String) throws -> Database {
         let database = try JSONDecoder().decode(
@@ -1249,7 +1250,8 @@ class Database: Codable, ObservableObject {
              face,
              beauty,
              talkBack,
-             gimbal
+             gimbal,
+             atemDevices
     }
 
     func encode(to encoder: any Encoder) throws {
@@ -1331,6 +1333,7 @@ class Database: Codable, ObservableObject {
         try container.encode(.beauty, beauty)
         try container.encode(.talkBack, talkback)
         try container.encode(.gimbal, gimbal)
+        try container.encode(.atemDevices, atemDevices)
     }
 
     init() {}
@@ -1462,6 +1465,7 @@ class Database: Codable, ObservableObject {
         beauty = container.decode(.beauty, SettingsBeauty.self, .init())
         talkback = container.decode(.talkBack, SettingsTalkback.self, .init())
         gimbal = container.decode(.gimbal, SettingsGimbal.self, .init())
+        atemDevices = container.decode(.atemDevices, SettingsAtemDevices.self, .init())
     }
 }
 

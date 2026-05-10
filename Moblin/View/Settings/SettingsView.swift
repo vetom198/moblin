@@ -18,6 +18,16 @@ struct SettingsView: View {
                     Label("Streams", systemImage: "dot.radiowaves.left.and.right")
                 }
                 NavigationLink {
+                    RtmpServerSettingsView(rtmpServer: database.rtmpServer)
+                } label: {
+                    Label("RTMP server", systemImage: "antenna.radiowaves.left.and.right")
+                }
+                NavigationLink {
+                    AtemDevicesSettingsView(database: database, atemDevices: database.atemDevices)
+                } label: {
+                    Label("ATEM switchers", systemImage: "slider.horizontal.below.rectangle")
+                }
+                NavigationLink {
                     ScenesSettingsView(database: database)
                 } label: {
                     Label("Scenes", systemImage: "photo.on.rectangle")
