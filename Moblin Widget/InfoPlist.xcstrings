@@ -1,330 +1,330 @@
 {
-  "sourceLanguage" : "en",
-  "strings" : {
-    "CFBundleDisplayName" : {
-      "comment" : "Bundle display name",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Moblin Widget"
+  "sourceLanguage": "en",
+  "strings": {
+    "CFBundleDisplayName": {
+      "comment": "Bundle display name",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CTLiveGo Widget"
           }
         },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Moblin Widget"
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "CTLiveGo Widget"
           }
         },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Widget Moblin"
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CTLiveGo Widget"
           }
         },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Moblin Widget"
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CTLiveGo Widget"
           }
         },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Moblin 小工具"
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CTLiveGo Widget"
           }
         },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Moblin 小工具"
+        "zh-Hant-TW": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CTLiveGo Widget"
           }
         },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Moblin小工具"
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CTLiveGo Widget"
           }
         }
       }
     },
-    "CFBundleName" : {
-      "comment" : "Bundle name",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Moblin Widget"
+    "CFBundleName": {
+      "comment": "Bundle name",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CTLiveGo Widget"
           }
         },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "MoblinWidget"
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "CTLiveGo Widget"
           }
         },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Widget Moblin"
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CTLiveGo Widget"
           }
         },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "MoblinWidget"
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CTLiveGo Widget"
           }
         },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Moblin 小工具"
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CTLiveGo Widget"
           }
         },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Moblin 小工具"
+        "zh-Hant-TW": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CTLiveGo Widget"
           }
         },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Moblin小工具"
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CTLiveGo Widget"
           }
         }
       }
     },
-    "NSCameraUsageDescription" : {
-      "comment" : "Privacy - Camera Usage Description",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ja"
+    "NSCameraUsageDescription": {
+      "comment": "Privacy - Camera Usage Description",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ja"
           }
         },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Yes"
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Yes"
           }
         },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Si"
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Si"
           }
         },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ja"
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ja"
           }
         },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tak"
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tak"
           }
         },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "確定"
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確定"
           }
         },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "是"
+        "zh-Hant-TW": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "是"
           }
         },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "是"
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "是"
           }
         }
       }
     },
-    "NSHumanReadableCopyright" : {
-      "comment" : "Copyright (human-readable)",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : ""
+    "NSHumanReadableCopyright": {
+      "comment": "Copyright (human-readable)",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": ""
           }
         }
       }
     },
-    "NSMicrophoneUsageDescription" : {
-      "comment" : "Privacy - Microphone Usage Description",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ja"
+    "NSMicrophoneUsageDescription": {
+      "comment": "Privacy - Microphone Usage Description",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ja"
           }
         },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Yes"
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Yes"
           }
         },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Si"
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Si"
           }
         },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ja"
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ja"
           }
         },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tak"
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tak"
           }
         },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "確定"
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確定"
           }
         },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "是"
+        "zh-Hant-TW": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "是"
           }
         },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "是"
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "是"
           }
         }
       }
     },
-    "NSPhotoLibraryAddUsageDescription" : {
-      "comment" : "Privacy - Photo Library Additions Usage Description",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ja"
+    "NSPhotoLibraryAddUsageDescription": {
+      "comment": "Privacy - Photo Library Additions Usage Description",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ja"
           }
         },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Yes"
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Yes"
           }
         },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Si"
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Si"
           }
         },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ja"
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ja"
           }
         },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tak"
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tak"
           }
         },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "確定"
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確定"
           }
         },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "是"
+        "zh-Hant-TW": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "是"
           }
         },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "是"
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "是"
           }
         }
       }
     },
-    "NSPhotoLibraryUsageDescription" : {
-      "comment" : "Privacy - Photo Library Usage Description",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ja"
+    "NSPhotoLibraryUsageDescription": {
+      "comment": "Privacy - Photo Library Usage Description",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ja"
           }
         },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Yes"
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Yes"
           }
         },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Si"
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Si"
           }
         },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ja"
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ja"
           }
         },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tak"
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tak"
           }
         },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "確定"
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確定"
           }
         },
-        "zh-Hant-TW" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "是"
+        "zh-Hant-TW": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "是"
           }
         },
-        "zh-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "是"
+        "zh-HK": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "是"
           }
         }
       }
     }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }

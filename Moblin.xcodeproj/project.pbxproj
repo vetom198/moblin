@@ -792,7 +792,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Moblin Screen Recording/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = Moblin;
+				INFOPLIST_KEY_CFBundleDisplayName = CTLiveGo;
 				INFOPLIST_KEY_NSCameraUsageDescription = Yes;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = Yes;
@@ -827,7 +827,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Moblin Screen Recording/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = Moblin;
+				INFOPLIST_KEY_CFBundleDisplayName = CTLiveGo;
 				INFOPLIST_KEY_NSCameraUsageDescription = Yes;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = Yes;
@@ -1011,7 +1011,7 @@
 				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Moblin/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Moblin;
+				INFOPLIST_KEY_CFBundleDisplayName = CTLiveGo;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.video";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Moblin communicates with DJI cameras using Bluetooth.";
@@ -1078,7 +1078,7 @@
 				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Moblin/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Moblin;
+				INFOPLIST_KEY_CFBundleDisplayName = CTLiveGo;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.video";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Moblin communicates with DJI cameras using Bluetooth.";
@@ -1131,7 +1131,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Moblin Widget/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "Moblin Widget";
+				INFOPLIST_KEY_CFBundleDisplayName = "CTLiveGo Widget";
 				INFOPLIST_KEY_NSCameraUsageDescription = Yes;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = Yes;
@@ -1167,7 +1167,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Moblin Widget/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "Moblin Widget";
+				INFOPLIST_KEY_CFBundleDisplayName = "CTLiveGo Widget";
 				INFOPLIST_KEY_NSCameraUsageDescription = Yes;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = Yes;
@@ -1201,7 +1201,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Moblin Live Activity/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "Moblin Live Activity";
+				INFOPLIST_KEY_CFBundleDisplayName = "CTLiveGo Live Activity";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1233,7 +1233,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Moblin Live Activity/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "Moblin Live Activity";
+				INFOPLIST_KEY_CFBundleDisplayName = "CTLiveGo Live Activity";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				LD_RUNPATH_SEARCH_PATHS = (
