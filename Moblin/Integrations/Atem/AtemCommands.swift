@@ -1,49 +1,57 @@
 import Foundation
 
-// CStP — Change Stream Properties.
-// Layout (best-effort from open-source ATEM implementations; verified against
-// ATEM Mini Pro firmware ≥ 9.0):
-//   1 byte mask: bit0=service name, bit1=url, bit2=key
-//   3 bytes padding
-//   64 bytes service name (ASCII, null-padded)
-//   512 bytes URL (ASCII, null-padded)
-//   512 bytes stream key (ASCII, null-padded)
+// CRSS — Streaming Service Set.
+// Layout (verified against OpenSwitcher's reverse-engineered docs:
+// https://docs.openswitcher.org/commands/encoder.html):
+//   offset 0    size 1     mask (u8)
+//   offset 1    size 64    service name (ASCII, null-padded)
+//   offset 65   size 512   URL (ASCII, null-padded)
+//   offset 577  size 512   stream key (ASCII, null-padded)
+//   offset 1089 size 3     padding
+//   offset 1092 size 4     minimum bitrate (u32 BE, bytes/sec)
+//   offset 1096 size 4     maximum bitrate (u32 BE, bytes/sec)
+//   total: 1100 bytes
 //
-// The mask lets you set only the fields that changed. We always set all three
-// when pushing a configuration so the dropdown in ATEM Software Control's
-// Output > Live Stream lands on a single coherent destination.
+// Mask bits select which fields are applied; unselected fields are ignored
+// by ATEM but still need to be present in the payload at full length.
 
-enum AtemCStpField: UInt8 {
+enum AtemCrssField: UInt8 {
     case serviceName = 0x01
     case url         = 0x02
     case streamKey   = 0x04
+    case bitrate     = 0x08
 }
 
 enum AtemOpcode {
-    static let changeStreamProperties = "CStP"
-    static let changeStreamingState   = "StrR"   // start/stop streaming request
+    static let changeStreamingService = "CRSS"
+    static let streamingStateRequest  = "StrR"   // 1 byte enable + 3 bytes pad
     static let initComplete           = "InCm"   // server sends after state dump
     static let version                = "_ver"
     static let productId              = "_pin"
 }
 
-func atemCStpCommand(serviceName: String, url: String, streamKey: String) -> AtemCommand {
-    let mask: UInt8 = AtemCStpField.serviceName.rawValue
-        | AtemCStpField.url.rawValue
-        | AtemCStpField.streamKey.rawValue
+func atemSetStreamingServiceCommand(serviceName: String,
+                                    url: String,
+                                    streamKey: String) -> AtemCommand
+{
+    let mask: UInt8 = AtemCrssField.serviceName.rawValue
+        | AtemCrssField.url.rawValue
+        | AtemCrssField.streamKey.rawValue
     var payload = Data()
     payload.append(mask)
-    payload.append(Data([0, 0, 0]))                 // padding
     payload.append(atemFixedString(serviceName, length: 64))
     payload.append(atemFixedString(url, length: 512))
     payload.append(atemFixedString(streamKey, length: 512))
-    return AtemCommand(opcode: AtemOpcode.changeStreamProperties, payload: payload)
+    payload.append(Data([0, 0, 0]))                 // padding
+    payload.append(Data(count: 4))                   // min bitrate (mask bit not set)
+    payload.append(Data(count: 4))                   // max bitrate (mask bit not set)
+    return AtemCommand(opcode: AtemOpcode.changeStreamingService, payload: payload)
 }
 
-// StrR — Streaming Request.
-// 1 byte: 0 = stop, 1 = start.
+// StrR — Streaming State Request.
+// 1 byte: 0 = stop, 1 = start. 3 bytes padding for alignment.
 func atemStreamingCommand(start: Bool) -> AtemCommand {
     var payload = Data(count: 4)
     payload[0] = start ? 1 : 0
-    return AtemCommand(opcode: AtemOpcode.changeStreamingState, payload: payload)
+    return AtemCommand(opcode: AtemOpcode.streamingStateRequest, payload: payload)
 }

@@ -50,7 +50,7 @@ final class AtemController {
     }
 
     func pushStream(serviceName: String, url: String, key: String) {
-        let command = atemCStpCommand(serviceName: serviceName, url: url, streamKey: key)
+        let command = atemSetStreamingServiceCommand(serviceName: serviceName, url: url, streamKey: key)
         pendingPushCommands = [command]
         if let connection, connection.isConnected {
             sendPending()
