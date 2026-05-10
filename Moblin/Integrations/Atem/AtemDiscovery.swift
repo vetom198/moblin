@@ -10,19 +10,18 @@ protocol AtemDiscoveryDelegate: AnyObject {
     func atemDiscoveryUpdate(devices: [AtemDiscoveredDevice])
 }
 
-// Bonjour scanner for ATEM. Blackmagic switchers advertise on a few possible
-// service types depending on firmware:
-//   _blackmagic._tcp.       (newer ATEM Mini family)
-//   _blackmagic-cmd._tcp.   (some HyperDeck-adjacent builds)
-//   _blackmagic-rest._tcp.
-// We listen on all of them and merge by host.
+// Bonjour scanner for ATEM. ATEM Mini Pro / Extreme / etc. advertise the
+// switcher control protocol on:
+//   _switcher_ctrl._udp.
+// (Verified by enumerating _services._dns-sd._udp on a LAN with an ATEM.)
+// We also listen on the older _blackmagic._tcp. just in case it's used by
+// some firmware variant.
 //
 // If Bonjour produces nothing the user can always enter the IP manually.
 final class AtemDiscovery: NSObject {
     private static let bonjourTypes = [
+        "_switcher_ctrl._udp.",
         "_blackmagic._tcp.",
-        "_blackmagic-cmd._tcp.",
-        "_blackmagic-rest._tcp.",
     ]
     private var browsers: [NetServiceBrowser] = []
     private var resolving: [NetService] = []

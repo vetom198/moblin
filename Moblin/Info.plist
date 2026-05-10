@@ -28,9 +28,8 @@
         <array>
                 <string>_http._tcp</string>
                 <string>_moblink._tcp</string>
+                <string>_switcher_ctrl._udp</string>
                 <string>_blackmagic._tcp</string>
-                <string>_blackmagic-cmd._tcp</string>
-                <string>_blackmagic-rest._tcp</string>
         </array>
         <key>NSCameraReactionEffectsEnabled</key>
         <true/>
