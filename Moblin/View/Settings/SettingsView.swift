@@ -18,7 +18,7 @@ struct SettingsView: View {
                     Label("Streams", systemImage: "dot.radiowaves.left.and.right")
                 }
                 NavigationLink {
-                    RtmpServerSettingsView(rtmpServer: database.rtmpServer)
+                    RtmpServerStandaloneSettingsView(rtmpServer: database.rtmpServer)
                 } label: {
                     Label("RTMP server", systemImage: "antenna.radiowaves.left.and.right")
                 }
