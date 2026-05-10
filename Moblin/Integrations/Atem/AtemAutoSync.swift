@@ -187,4 +187,18 @@ extension AtemAutoSync: AtemControllerDelegate {
             }
         }
     }
+
+    func atemControllerDidReadStreamingService(serviceName: String, url: String) {
+        // We don't know which controller fired this exactly, but the only
+        // controllers active during a sync cycle are auto-sync ones. Update
+        // any device whose controller is currently in flight; multiple
+        // ATEMs in one cycle is rare and they all see their own SRSU.
+        for (deviceId, _) in pushControllers {
+            if let device = atemDevices.devices.first(where: { $0.id == deviceId }) {
+                device.lastReadServiceName = serviceName
+                device.lastReadUrl = url
+                device.lastReadAt = Date()
+            }
+        }
+    }
 }

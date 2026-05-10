@@ -8,7 +8,14 @@ protocol AtemConnectionDelegate: AnyObject {
     func atemConnectionDidReceive(commands: [AtemCommand])
 }
 
-private let atemHelloPayload = Data([
+// The 20-byte hello packet exactly as Sofie's libatem-connection sends it.
+// The header is fixed: flag=Hello (0x02 in upper 5 bits) + length 20 ->
+// 0x1014, sessionId 0x53AB (any non-zero will do — server reassigns), and
+// the 0x003A at offset 8..9 is interpreted as a client-capability /
+// protocol-version marker; without it ATEM has been observed to accept
+// the handshake but silently drop subsequent control writes (CRSS etc).
+private let atemHelloFullPacket = Data([
+    0x10, 0x14, 0x53, 0xab, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3a, 0x00, 0x00,
     0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 ])
 private let atemQueueLabel = "com.eerimoq.atem"
@@ -30,10 +37,16 @@ final class AtemConnection {
     private var handshakeTimer: DispatchSourceTimer?
     private var pingTimer: DispatchSourceTimer?
     private var lastReceivedPacketId: UInt16 = 0
+    private var initComplete = false
 
     init(host: String, port: UInt16 = atemUdpPort) {
         self.host = host
         self.port = port
+        // Start packet id at a random non-trivial value. ATEM seems to
+        // reuse session ids across short-lived UDP connections, and if we
+        // start at 1 every time the switcher may treat our first packet
+        // as a duplicate of an already-acknowledged one and drop it.
+        localPacketIdCounter = UInt16.random(in: 1024 ... 32_000)
     }
 
     func start() {
@@ -50,7 +63,10 @@ final class AtemConnection {
 
     func send(commands: [AtemCommand]) {
         queue.async {
-            guard self.isConnected else { return }
+            guard self.isConnected else {
+                logger.info("atem: send skipped — not connected (isConnected=false)")
+                return
+            }
             var payload = Data()
             for command in commands {
                 payload.append(command.serialize())
@@ -62,6 +78,8 @@ final class AtemConnection {
                 packetId: self.localPacketIdCounter,
                 payload: payload
             )
+            let opcodes = commands.map(\.opcode).joined(separator: ",")
+            logger.info("atem: \(self.host) tx packetId=\(self.localPacketIdCounter) opcodes=\(opcodes) bytes=\(pkt.serialize().count)")
             self.sendRaw(pkt)
         }
     }
@@ -100,17 +118,17 @@ final class AtemConnection {
     }
 
     private func sendHello() {
-        // First Hello: session id is essentially arbitrary on client side; many
-        // ATEM implementations use a small random value. Server will assign the
-        // real session id in its reply.
-        sessionId = UInt16.random(in: 0x0001 ... 0x7FFF)
-        let pkt = AtemPacket(
-            flags: [.helloPacket],
-            sessionId: sessionId,
-            payload: atemHelloPayload
-        )
-        sendRaw(pkt)
-        logger.info("atem: \(host) -> Hello (session=\(sessionId))")
+        // Send the exact 20-byte buffer Sofie's libatem-connection uses;
+        // bypass our regular packet builder so the 0x003A at offset 8..9
+        // (a client-capability marker on hello packets only) lands intact.
+        sessionId = 0x53ab
+        guard let connection else { return }
+        connection.send(content: atemHelloFullPacket, completion: .contentProcessed { error in
+            if let error {
+                logger.info("atem: \(self.host) hello send error: \(error)")
+            }
+        })
+        logger.info("atem: \(host) -> Hello (Sofie-format, 20 bytes)")
     }
 
     private func scheduleHandshakeTimeout() {
@@ -183,7 +201,7 @@ final class AtemConnection {
     }
 
     private func handleIncoming(packet: AtemPacket) {
-        // Hello reply finalises the session.
+        // Hello reply: server has assigned the real session id.
         if packet.flags.contains(.helloPacket) {
             sessionId = packet.sessionId
             // ACK the hello-reply.
@@ -193,16 +211,17 @@ final class AtemConnection {
                 ackPacketId: packet.packetId
             )
             sendRaw(ack)
-            if !isConnected {
-                isConnected = true
-                handshakeTimer?.cancel()
-                startPingTimer()
-                logger.info("atem: \(host) connected (session=\(sessionId))")
-                DispatchQueue.main.async { [weak self] in
-                    self?.delegate?.atemConnectionDidConnect()
-                }
-            }
+            // Note: we don't fire didConnect yet — we wait for InCm so the
+            // delegate only sends control commands after ATEM finishes its
+            // initial state dump. CRSS sent before InCm is silently dropped.
+            handshakeTimer?.cancel()
+            startPingTimer()
+            logger.info("atem: \(host) handshake ack (session=\(sessionId)), waiting for InCm")
             return
+        }
+        // Server's ACK of one of our packets.
+        if packet.flags.contains(.ack) {
+            logger.info("atem: \(host) rx ACK of packetId=\(packet.ackPacketId)")
         }
         // Server sent commands and asked us to ACK.
         if packet.flags.contains(.ackRequest) {
@@ -216,6 +235,32 @@ final class AtemConnection {
         }
         if !packet.payload.isEmpty {
             let commands = AtemCommand.parseAll(packet.payload)
+            // Watch for InCm — ATEM's "init complete" marker. Until we see it
+            // ATEM ignores our control commands (CRSS etc).
+            if !initComplete, commands.contains(where: { $0.opcode == "InCm" }) {
+                initComplete = true
+                isConnected = true
+                logger.info("atem: \(host) InCm received — sending 0x61 ack + settling 100ms")
+                // After init complete, send the "ready to write" marker:
+                // an ACK whose retransmit-id field carries the constant
+                // 0x0061. Some third-party reverse-engineering reports
+                // claim this is what flips the switcher into a state that
+                // accepts CRSS / other write commands; without it the
+                // session stays in passive-monitoring mode.
+                let readyAck = AtemPacket(
+                    flags: [.ack],
+                    sessionId: sessionId,
+                    ackPacketId: lastReceivedPacketId,
+                    retransmitPacketId: 0x0061
+                )
+                sendRaw(readyAck)
+                // Settling delay: ATEM may keep streaming trailing state
+                // (camera control, audio params) right after InCm. Issuing
+                // a write right now risks colliding with that processing.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+                    self?.delegate?.atemConnectionDidConnect()
+                }
+            }
             if !commands.isEmpty {
                 DispatchQueue.main.async { [weak self] in
                     self?.delegate?.atemConnectionDidReceive(commands: commands)
@@ -247,6 +292,7 @@ final class AtemConnection {
         connection = nil
         let wasConnected = isConnected
         isConnected = false
+        initComplete = false
         if notify, wasConnected {
             DispatchQueue.main.async { [weak self] in
                 self?.delegate?.atemConnectionDidDisconnect()

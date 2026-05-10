@@ -53,6 +53,14 @@ class SettingsAtemDevice: Codable, Identifiable, ObservableObject, Named {
     @Published var lastSyncStatus: AtemSyncStatus = .never
     @Published var lastSyncAt: Date?
 
+    // Run-time only — latest streaming service settings read back from
+    // the ATEM (via SRSU). Lets the user see "what ATEM thinks the dest
+    // is right now" so a successful push is obvious without opening
+    // ATEM Software Control. Not persisted.
+    @Published var lastReadServiceName: String?
+    @Published var lastReadUrl: String?
+    @Published var lastReadAt: Date?
+
     enum CodingKeys: CodingKey {
         case id, name, host, enabled, rtmpSource, rtmpStreamId,
              customRtmpUrl, customStreamKey, serviceName,

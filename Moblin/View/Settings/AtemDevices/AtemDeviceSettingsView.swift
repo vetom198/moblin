@@ -90,19 +90,71 @@ struct AtemDeviceSettingsView: View {
                     push()
                 } label: {
                     HCenter {
-                        if pushState.status.isBusy {
+                        if pushState.status == .pushing || pushState.status == .connecting {
                             ProgressView()
                         } else {
-                            Label("Push to ATEM", systemImage: "arrow.up.right.square")
-                                .foregroundColor(canPush() ? .accentColor : .secondary)
+                            Label("Go Live on ATEM", systemImage: "dot.radiowaves.left.and.right")
+                                .foregroundColor(canPush() ? .red : .secondary)
                         }
                     }
                 }
                 .disabled(!canPush() || pushState.status.isBusy)
+                Button {
+                    pushState.stop(device: device)
+                } label: {
+                    HCenter {
+                        if pushState.status == .stopping {
+                            ProgressView()
+                        } else {
+                            Label("Stop ATEM Stream", systemImage: "stop.fill")
+                                .foregroundColor(device.host.isEmpty ? .secondary : .primary)
+                        }
+                    }
+                }
+                .disabled(device.host.isEmpty || pushState.status.isBusy)
                 Text(pushState.status.description)
                     .font(.footnote)
                     .foregroundColor(pushStatusColor())
                     .frame(maxWidth: .infinity, alignment: .center)
+            } footer: {
+                Text("Go Live tells the ATEM to start streaming to the destination above immediately. Stop tells it to stop. The ATEM's saved \"Platform\" preset in ATEM Software Control is unaffected.")
+            }
+
+            Section {
+                if let name = device.lastReadServiceName, let url = device.lastReadUrl {
+                    HStack(alignment: .top) {
+                        Text("Service")
+                        Spacer()
+                        Text(name).foregroundColor(.secondary)
+                            .multilineTextAlignment(.trailing)
+                    }
+                    HStack(alignment: .top) {
+                        Text("URL")
+                        Spacer()
+                        Text(url.isEmpty ? "—" : url)
+                            .font(.system(.footnote, design: .monospaced))
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.trailing)
+                            .textSelection(.enabled)
+                    }
+                    if let at = device.lastReadAt {
+                        HStack {
+                            Text("Read at")
+                            Spacer()
+                            Text(at.formatted(date: .omitted, time: .standard))
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                } else {
+                    Text("No data — push or sync this device once to read its current settings.")
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                }
+            } header: {
+                Text("Current settings on ATEM")
+            } footer: {
+                Text("Read from the switcher (SRSU) during the last connection. After a successful push these should match the URL above.")
             }
         }
         .navigationTitle(device.name)
@@ -162,7 +214,7 @@ struct AtemDeviceSettingsView: View {
     private func push() {
         guard let dest = atemResolveDestination(device: device, rtmpServer: database.rtmpServer),
               !device.host.isEmpty else { return }
-        pushState.push(host: device.host,
+        pushState.push(device: device,
                        serviceName: device.serviceName,
                        url: dest.url,
                        key: dest.key)
@@ -171,6 +223,7 @@ struct AtemDeviceSettingsView: View {
     private func pushStatusColor() -> Color {
         switch pushState.status {
         case .succeeded: .green
+        case .stopped: .secondary
         case .failed: .red
         default: .secondary
         }
@@ -206,12 +259,22 @@ private struct AtemHostEditView: View {
 final class AtemPushState: ObservableObject {
     @Published var status: AtemControllerStatus = .idle
     private var controller: AtemController?
+    weak var device: SettingsAtemDevice?
 
-    func push(host: String, serviceName: String, url: String, key: String) {
-        let controller = AtemController(host: host)
+    func push(device: SettingsAtemDevice, serviceName: String, url: String, key: String) {
+        self.device = device
+        let controller = AtemController(host: device.host)
         controller.delegate = self
         self.controller = controller
         controller.pushStream(serviceName: serviceName, url: url, key: key)
+    }
+
+    func stop(device: SettingsAtemDevice) {
+        self.device = device
+        let controller = AtemController(host: device.host)
+        controller.delegate = self
+        self.controller = controller
+        controller.stopStream()
     }
 }
 
@@ -219,6 +282,14 @@ extension AtemPushState: AtemControllerDelegate {
     nonisolated func atemControllerStatusChanged(status: AtemControllerStatus) {
         Task { @MainActor in
             self.status = status
+        }
+    }
+
+    nonisolated func atemControllerDidReadStreamingService(serviceName: String, url: String) {
+        Task { @MainActor in
+            self.device?.lastReadServiceName = serviceName
+            self.device?.lastReadUrl = url
+            self.device?.lastReadAt = Date()
         }
     }
 }
