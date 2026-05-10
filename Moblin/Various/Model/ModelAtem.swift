@@ -4,12 +4,22 @@ extension Model {
     // Lazily set up the auto-sync coordinator on first use, then trigger it.
     // Cheap when there's nothing eligible (the coordinator returns early).
     func triggerAtemAutoSync(reason: String) {
-        if atemAutoSync == nil {
-            let coordinator = AtemAutoSync(atemDevices: database.atemDevices)
-            coordinator.delegate = self
-            atemAutoSync = coordinator
-        }
-        atemAutoSync?.trigger(reason: reason)
+        ensureAtemAutoSync().trigger(reason: reason)
+    }
+
+    // User-initiated rediscover-and-push for every paired ATEM. Bypasses the
+    // master toggle and the per-device autoSync flag — if the user pressed
+    // the button they want it to happen.
+    func runManualAtemSync(reason: String = "user-tap") {
+        ensureAtemAutoSync().runManualCycle(reason: reason)
+    }
+
+    private func ensureAtemAutoSync() -> AtemAutoSync {
+        if let existing = atemAutoSync { return existing }
+        let coordinator = AtemAutoSync(atemDevices: database.atemDevices)
+        coordinator.delegate = self
+        atemAutoSync = coordinator
+        return coordinator
     }
 }
 

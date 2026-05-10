@@ -52,6 +52,24 @@ struct AtemDeviceSettingsView: View {
                         .font(.footnote)
                         .foregroundColor(.secondary)
                 }
+                HStack {
+                    Text("Last sync")
+                    Spacer()
+                    VStack(alignment: .trailing) {
+                        Text(device.lastSyncStatus.description)
+                            .foregroundColor(syncStatusColor(device.lastSyncStatus))
+                        if let at = device.lastSyncAt {
+                            Text(at.formatted(date: .omitted, time: .standard))
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+                Button {
+                    model.runManualAtemSync(reason: "device-tap")
+                } label: {
+                    Label("Sync now", systemImage: "arrow.triangle.2.circlepath")
+                }
             } footer: {
                 Text("When the RTMP server starts on a new IP — for example after switching Wi-Fi networks — CTLiveGo re-discovers this ATEM by its Bonjour name and re-pushes the destination.")
             }

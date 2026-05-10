@@ -5,6 +5,27 @@ enum SettingsAtemRtmpSource: String, Codable, CaseIterable {
     case custom
 }
 
+// Per-device run-time auto-sync status. Not persisted — pure UI state.
+enum AtemSyncStatus: Equatable {
+    case never
+    case scanning
+    case notFound
+    case pushing
+    case succeeded
+    case failed(String)
+
+    var description: String {
+        switch self {
+        case .never: String(localized: "Never synced")
+        case .scanning: String(localized: "Scanning...")
+        case .notFound: String(localized: "Not found on LAN")
+        case .pushing: String(localized: "Pushing...")
+        case .succeeded: String(localized: "Synced")
+        case let .failed(reason): String(localized: "Failed: \(reason)")
+        }
+    }
+}
+
 class SettingsAtemDevice: Codable, Identifiable, ObservableObject, Named {
     static let baseName = String(localized: "My ATEM")
     var id: UUID = .init()
@@ -25,6 +46,12 @@ class SettingsAtemDevice: Codable, Identifiable, ObservableObject, Named {
     // destination. Lets the streamer move between Wi-Fi networks without
     // manually re-pointing the switcher each time.
     @Published var autoSync: Bool = true
+
+    // Run-time only — last auto-sync outcome and when it happened. Not
+    // persisted across app launches; @Published so the device editor
+    // updates live as scans happen.
+    @Published var lastSyncStatus: AtemSyncStatus = .never
+    @Published var lastSyncAt: Date?
 
     enum CodingKeys: CodingKey {
         case id, name, host, enabled, rtmpSource, rtmpStreamId,
@@ -83,9 +110,12 @@ class SettingsAtemDevice: Codable, Identifiable, ObservableObject, Named {
 
 class SettingsAtemDevices: Codable, ObservableObject {
     @Published var devices: [SettingsAtemDevice] = []
+    // Master kill switch. When false, no auto-sync cycles run regardless of
+    // per-device autoSync settings. Manual Push / "Sync now" still works.
+    @Published var autoSyncEnabled: Bool = true
 
     enum CodingKeys: CodingKey {
-        case devices
+        case devices, autoSyncEnabled
     }
 
     init() {}
@@ -93,15 +123,18 @@ class SettingsAtemDevices: Codable, ObservableObject {
     func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(.devices, devices)
+        try container.encode(.autoSyncEnabled, autoSyncEnabled)
     }
 
     required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         devices = container.decode(.devices, [SettingsAtemDevice].self, [])
+        autoSyncEnabled = container.decode(.autoSyncEnabled, Bool.self, true)
     }
 
     func clone() -> SettingsAtemDevices {
         let new = SettingsAtemDevices()
+        new.autoSyncEnabled = autoSyncEnabled
         for device in devices {
             new.devices.append(device.clone())
         }

@@ -11,13 +11,29 @@ private struct AtemDeviceWrapperView: View {
         } label: {
             HStack {
                 DraggableItemPrefixView()
-                Text(device.name)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(device.name)
+                    if device.lastSyncStatus != .never {
+                        Text(device.lastSyncStatus.description)
+                            .font(.caption)
+                            .foregroundColor(syncStatusColor(device.lastSyncStatus))
+                    }
+                }
                 Spacer()
                 GrayTextView(text: device.host.isEmpty
                              ? String(localized: "Not paired")
                              : device.host)
             }
         }
+    }
+}
+
+func syncStatusColor(_ status: AtemSyncStatus) -> Color {
+    switch status {
+    case .succeeded: .green
+    case .failed, .notFound: .red
+    case .scanning, .pushing: .accentColor
+    case .never: .secondary
     }
 }
 
@@ -40,6 +56,22 @@ struct AtemDevicesSettingsView: View {
                 Both this device and the ATEM must be on the same LAN.
                 """)
             }
+
+            Section {
+                Toggle("Auto-sync globally", isOn: $atemDevices.autoSyncEnabled)
+                Button {
+                    model.runManualAtemSync()
+                } label: {
+                    HStack {
+                        Label("Re-discover and sync now", systemImage: "arrow.triangle.2.circlepath")
+                        Spacer()
+                    }
+                }
+                .disabled(atemDevices.devices.isEmpty)
+            } footer: {
+                Text("Auto-sync re-discovers each enabled ATEM by Bonjour name and re-pushes the RTMP destination after the RTMP server reloads or the app foregrounds. Manual sync ignores both the global and per-device toggles.")
+            }
+
             Section {
                 List {
                     ForEach(atemDevices.devices) { device in

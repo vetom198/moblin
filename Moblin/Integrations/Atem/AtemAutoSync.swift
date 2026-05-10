@@ -26,7 +26,9 @@ protocol AtemAutoSyncDelegate: AnyObject {
     func atemAutoSyncResolveDestination(for device: SettingsAtemDevice) -> (url: String, key: String)?
 }
 
-@MainActor
+// Lives on main thread — all triggers come from notification handlers and
+// view callbacks which are main-isolated. We use main async hops only for
+// the cross-actor delegate callbacks from AtemController.
 final class AtemAutoSync {
     private let atemDevices: SettingsAtemDevices
     weak var delegate: AtemAutoSyncDelegate?
@@ -34,7 +36,9 @@ final class AtemAutoSync {
     private var discovery: AtemDiscovery?
     private var inFlight = false
     private var dirty = false
+    private var currentCycleManual = false
     private var pushControllers: [UUID: AtemController] = [:]
+    private var pushDeviceIds: [ObjectIdentifier: UUID] = [:]
     private var endTimer: DispatchSourceTimer?
 
     init(atemDevices: SettingsAtemDevices) {
@@ -42,23 +46,39 @@ final class AtemAutoSync {
     }
 
     func trigger(reason: String) {
+        guard atemDevices.autoSyncEnabled else { return }
         guard hasEligibleDevice() else { return }
         if inFlight {
             dirty = true
             logger.info("atem-autosync: trigger (\(reason)) — already in flight, queued")
             return
         }
-        startCycle(reason: reason)
+        startCycle(reason: reason, manual: false)
+    }
+
+    // Manual one-shot — bypasses the master toggle so the user can always
+    // force a re-discover-and-push from the UI.
+    func runManualCycle(reason: String) {
+        if inFlight {
+            dirty = true
+            logger.info("atem-autosync: manual (\(reason)) — already in flight, queued")
+            return
+        }
+        startCycle(reason: reason, manual: true)
     }
 
     private func hasEligibleDevice() -> Bool {
         atemDevices.devices.contains { $0.enabled && $0.autoSync && !$0.bonjourName.isEmpty }
     }
 
-    private func startCycle(reason: String) {
+    private func startCycle(reason: String, manual: Bool) {
         inFlight = true
         dirty = false
-        logger.info("atem-autosync: cycle start (\(reason))")
+        currentCycleManual = manual
+        logger.info("atem-autosync: cycle start (\(reason)) manual=\(manual)")
+        for device in eligibleDevices(manual: manual) {
+            device.lastSyncStatus = .scanning
+        }
         let scanner = AtemDiscovery()
         scanner.delegate = self
         discovery = scanner
@@ -77,18 +97,34 @@ final class AtemAutoSync {
         endTimer = nil
         discovery?.stop()
         discovery = nil
+        let manual = currentCycleManual
+        // Any device still in .scanning at this point was not found.
+        for device in eligibleDevices(manual: manual)
+            where device.lastSyncStatus == .scanning
+        {
+            device.lastSyncStatus = .notFound
+            device.lastSyncAt = Date()
+        }
         inFlight = false
+        currentCycleManual = false
         logger.info("atem-autosync: cycle end")
         if dirty {
             dirty = false
-            startCycle(reason: "queued")
+            startCycle(reason: "queued", manual: false)
+        }
+    }
+
+    private func eligibleDevices(manual: Bool) -> [SettingsAtemDevice] {
+        atemDevices.devices.filter {
+            $0.enabled
+                && !$0.bonjourName.isEmpty
+                && (manual || $0.autoSync)
         }
     }
 
     private func handle(found: [AtemDiscoveredDevice]) {
-        for device in atemDevices.devices
-            where device.enabled && device.autoSync && !device.bonjourName.isEmpty
-        {
+        let manual = currentCycleManual
+        for device in eligibleDevices(manual: manual) {
             guard let match = found.first(where: { $0.name == device.bonjourName }) else {
                 continue
             }
@@ -103,14 +139,34 @@ final class AtemAutoSync {
     private func push(device: SettingsAtemDevice) {
         guard let dest = delegate?.atemAutoSyncResolveDestination(for: device) else {
             logger.info("atem-autosync: \(device.name) skip — no resolved destination")
+            device.lastSyncStatus = .failed(String(localized: "No RTMP destination"))
+            device.lastSyncAt = Date()
             return
         }
         let id = device.id
+        device.lastSyncStatus = .pushing
         let controller = AtemController(host: device.host)
         controller.delegate = self
         pushControllers[id] = controller
+        pushDeviceIds[ObjectIdentifier(controller)] = id
         controller.pushStream(serviceName: device.serviceName, url: dest.url, key: dest.key)
         logger.info("atem-autosync: \(device.name) push -> \(dest.url) key=\(dest.key.isEmpty ? "(empty)" : "***")")
+    }
+
+    private func updateDeviceStatus(controllerId: ObjectIdentifier, status: AtemControllerStatus) {
+        guard let deviceId = pushDeviceIds[controllerId],
+              let device = atemDevices.devices.first(where: { $0.id == deviceId })
+        else { return }
+        switch status {
+        case .succeeded:
+            device.lastSyncStatus = .succeeded
+            device.lastSyncAt = Date()
+        case let .failed(reason):
+            device.lastSyncStatus = .failed(reason)
+            device.lastSyncAt = Date()
+        default:
+            break
+        }
     }
 }
 
@@ -121,13 +177,13 @@ extension AtemAutoSync: AtemDiscoveryDelegate {
 }
 
 extension AtemAutoSync: AtemControllerDelegate {
-    nonisolated func atemControllerStatusChanged(status: AtemControllerStatus) {
-        Task { @MainActor in
-            switch status {
-            case .succeeded, .failed, .idle:
-                self.pushControllers = self.pushControllers.filter { $0.value.status.isBusy }
-            default:
-                break
+    func atemControllerStatusChanged(status: AtemControllerStatus) {
+        // AtemController already dispatches delegate callbacks on main.
+        for (deviceId, controller) in pushControllers where controller.status == status {
+            updateDeviceStatus(controllerId: ObjectIdentifier(controller), status: status)
+            if !controller.status.isBusy {
+                pushControllers.removeValue(forKey: deviceId)
+                pushDeviceIds.removeValue(forKey: ObjectIdentifier(controller))
             }
         }
     }

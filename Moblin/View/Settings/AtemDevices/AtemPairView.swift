@@ -85,4 +85,3 @@ extension AtemPairScanner: AtemDiscoveryDelegate {
     }
 }
 
-extension AtemDiscoveredDevice: Identifiable {}
