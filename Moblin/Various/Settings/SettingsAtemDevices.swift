@@ -16,10 +16,20 @@ class SettingsAtemDevice: Codable, Identifiable, ObservableObject, Named {
     @Published var customRtmpUrl: String = ""
     @Published var customStreamKey: String = ""
     @Published var serviceName: String = "Moblin"
+    // Bonjour service name captured at pair time. Survives ATEM reboots and
+    // DHCP lease changes — set in flash via Blackmagic ATEM Setup. Used as
+    // the stable key for auto-resync.
+    @Published var bonjourName: String = ""
+    // When true, CTLiveGo re-discovers this ATEM on the LAN after the RTMP
+    // server reloads (or app foregrounds) and re-pushes the current RTMP
+    // destination. Lets the streamer move between Wi-Fi networks without
+    // manually re-pointing the switcher each time.
+    @Published var autoSync: Bool = true
 
     enum CodingKeys: CodingKey {
         case id, name, host, enabled, rtmpSource, rtmpStreamId,
-             customRtmpUrl, customStreamKey, serviceName
+             customRtmpUrl, customStreamKey, serviceName,
+             bonjourName, autoSync
     }
 
     init() {}
@@ -35,6 +45,8 @@ class SettingsAtemDevice: Codable, Identifiable, ObservableObject, Named {
         try container.encode(.customRtmpUrl, customRtmpUrl)
         try container.encode(.customStreamKey, customStreamKey)
         try container.encode(.serviceName, serviceName)
+        try container.encode(.bonjourName, bonjourName)
+        try container.encode(.autoSync, autoSync)
     }
 
     required init(from decoder: any Decoder) throws {
@@ -48,6 +60,8 @@ class SettingsAtemDevice: Codable, Identifiable, ObservableObject, Named {
         customRtmpUrl = container.decode(.customRtmpUrl, String.self, "")
         customStreamKey = container.decode(.customStreamKey, String.self, "")
         serviceName = container.decode(.serviceName, String.self, "Moblin")
+        bonjourName = container.decode(.bonjourName, String.self, "")
+        autoSync = container.decode(.autoSync, Bool.self, true)
     }
 
     func clone() -> SettingsAtemDevice {
@@ -61,6 +75,8 @@ class SettingsAtemDevice: Codable, Identifiable, ObservableObject, Named {
         new.customRtmpUrl = customRtmpUrl
         new.customStreamKey = customStreamKey
         new.serviceName = serviceName
+        new.bonjourName = bonjourName
+        new.autoSync = autoSync
         return new
     }
 }

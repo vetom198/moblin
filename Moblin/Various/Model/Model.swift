@@ -551,6 +551,8 @@ final class Model: NSObject, ObservableObject, @unchecked Sendable {
         settings.database
     }
 
+    var atemAutoSync: AtemAutoSync?
+
     var speechToText: SpeechToText?
     let twitchAuth = TwitchAuth()
     var twitchAuthOnComplete: ((_ accessToken: String) -> Void)?
@@ -1201,6 +1203,9 @@ final class Model: NSObject, ObservableObject, @unchecked Sendable {
 
     @objc func applicationDidChangeActive(notification: NSNotification) {
         isAppActive = notification.name == UIApplication.didBecomeActiveNotification
+        if isAppActive {
+            triggerAtemAutoSync(reason: "app-active")
+        }
     }
 
     func startGForceManager() {

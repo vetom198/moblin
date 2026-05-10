@@ -75,6 +75,7 @@ struct AtemDevicesSettingsView: View {
                         let new = SettingsAtemDevice()
                         new.name = makeUniqueName(name: confirmed.name,
                                                   existingNames: atemDevices.devices)
+                        new.bonjourName = confirmed.name
                         new.host = confirmed.host
                         new.enabled = true
                         atemDevices.devices.append(new)

@@ -1,8 +1,6 @@
 import Network
 import SwiftUI
 
-private let preferredInterfacePrefixes = ["en", "pdp_ip"]
-
 struct AtemDeviceSettingsView: View {
     @EnvironmentObject var model: Model
     @ObservedObject var database: Database
@@ -41,6 +39,21 @@ struct AtemDeviceSettingsView: View {
                 }
             } header: {
                 Text("RTMP destination")
+            }
+
+            Section {
+                Toggle("Auto-sync on RTMP server change", isOn: $device.autoSync)
+                if device.bonjourName.isEmpty {
+                    Text("Auto-sync needs the Bonjour name captured at pair time. Re-pair this device to enable it.")
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                } else {
+                    Text("Bonjour: \(device.bonjourName)")
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                }
+            } footer: {
+                Text("When the RTMP server starts on a new IP — for example after switching Wi-Fi networks — CTLiveGo re-discovers this ATEM by its Bonjour name and re-pushes the destination.")
             }
 
             Section {
@@ -125,25 +138,11 @@ struct AtemDeviceSettingsView: View {
     }
 
     private func buildPreviewUrl() -> String {
-        guard let parts = resolveDestination() else { return "" }
-        return parts.fullUrl
-    }
-
-    private func resolveDestination() -> AtemDestination? {
-        switch device.rtmpSource {
-        case .savedRtmpStream:
-            guard let stream = resolvedStream() else { return nil }
-            let ip = preferredLocalIp() ?? "<this-device-ip>"
-            let port = database.rtmpServer.port
-            let url = "rtmp://\(ip):\(port)/live"
-            return AtemDestination(url: url, key: stream.streamKey)
-        case .custom:
-            return AtemDestination(url: device.customRtmpUrl, key: device.customStreamKey)
-        }
+        atemResolveDestination(device: device, rtmpServer: database.rtmpServer)?.fullUrl ?? ""
     }
 
     private func push() {
-        guard let dest = resolveDestination(),
+        guard let dest = atemResolveDestination(device: device, rtmpServer: database.rtmpServer),
               !device.host.isEmpty else { return }
         pushState.push(host: device.host,
                        serviceName: device.serviceName,
@@ -157,15 +156,6 @@ struct AtemDeviceSettingsView: View {
         case .failed: .red
         default: .secondary
         }
-    }
-}
-
-private struct AtemDestination {
-    let url: String
-    let key: String
-    var fullUrl: String {
-        if key.isEmpty { return url }
-        return "\(url)/\(key)"
     }
 }
 
@@ -213,43 +203,6 @@ extension AtemPushState: AtemControllerDelegate {
             self.status = status
         }
     }
-}
-
-// MARK: - local IP
-
-private func preferredLocalIp() -> String? {
-    var ifaddr: UnsafeMutablePointer<ifaddrs>?
-    guard getifaddrs(&ifaddr) == 0, let first = ifaddr else { return nil }
-    defer { freeifaddrs(ifaddr) }
-
-    var fallback: String?
-    var ptr = first
-    while true {
-        let interface = ptr.pointee
-        if let addr = interface.ifa_addr, addr.pointee.sa_family == UInt8(AF_INET) {
-            let name = String(cString: interface.ifa_name)
-            if preferredInterfacePrefixes.contains(where: { name.hasPrefix($0) }) {
-                var hostBuf = [CChar](repeating: 0, count: Int(NI_MAXHOST))
-                if getnameinfo(addr,
-                               socklen_t(interface.ifa_addr.pointee.sa_len),
-                               &hostBuf, socklen_t(hostBuf.count),
-                               nil, 0,
-                               NI_NUMERICHOST) == 0
-                {
-                    let ip = String(cString: hostBuf)
-                    if !ip.hasPrefix("127.") {
-                        if name.hasPrefix("en") {
-                            return ip
-                        }
-                        fallback = fallback ?? ip
-                    }
-                }
-            }
-        }
-        guard let next = interface.ifa_next else { break }
-        ptr = next
-    }
-    return fallback
 }
 
 private extension String {

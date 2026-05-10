@@ -90,6 +90,7 @@ extension Model {
             ingests.rtmp = RtmpServer(settings: database.rtmpServer.clone(), delegate: self)
             ingests.rtmp?.start()
         }
+        triggerAtemAutoSync(reason: "rtmp-server-reload")
     }
 
     func rtmpServerEnabled() -> Bool {
