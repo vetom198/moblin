@@ -22,6 +22,17 @@ class RtmpServerChunkStream: @unchecked Sendable {
     private var pcmAudioFormat: AVAudioFormat?
     private var pcmAudioBuffer: AVAudioPCMBuffer?
 
+    // PTS regularization for jittery RTMP sources (e.g. DJI Action 5).
+    // RTMP message timestamps from external encoders are not strictly periodic,
+    // which causes downstream AAC decoders (OBS ffmpeg, GStreamer avdec_aac)
+    // to enter a permanent error state when the jitter is large.
+    // Fix: anchor PTS to the first frame's RTMP timestamp, then advance by
+    // exactly (1024 / sampleRate) seconds per frame. AAC LC frames are always
+    // 1024 samples (matches the existing `frameCapacity: 1024` assumption).
+    private var audioFrameCount: Int64 = 0
+    private var audioSampleRate: Double = 0
+    private var audioBaseTimestampMs: Double = -1
+
     init(client: RtmpServerClient, streamId: UInt16) {
         self.client = client
         self.streamId = streamId
@@ -365,6 +376,10 @@ class RtmpServerChunkStream: @unchecked Sendable {
         if audioDecoder == nil {
             logger.info("rtmp-server: client: Failed to create audio decdoer")
         }
+        // Reset PTS regularization state when audio format is (re)negotiated.
+        audioFrameCount = 0
+        audioSampleRate = audioFormat.sampleRate
+        audioBaseTimestampMs = -1
     }
 
     private func processMessageAudioTypeRaw(client: RtmpServerClient, codec: FlvAudioCodec) {
@@ -623,9 +638,24 @@ class RtmpServerChunkStream: @unchecked Sendable {
     private func makeAudioSampleBuffer(client: RtmpServerClient,
                                        audioBuffer: AVAudioPCMBuffer) -> CMSampleBuffer?
     {
-        let audioTimestamp = mediaTimestamp - mediaTimestampZero
+        // PTS regularization: ignore RTMP messageTimestamp jitter and reconstruct
+        // a perfectly regular PTS based on AAC frame count × samples-per-frame / sampleRate.
+        // See member variable comments above for rationale.
+        let rtmpTimestampMs = mediaTimestamp - mediaTimestampZero
+        if audioBaseTimestampMs < 0 {
+            audioBaseTimestampMs = rtmpTimestampMs
+        }
+        let regularizedTimestampMs: Double
+        if audioSampleRate > 0 {
+            regularizedTimestampMs = audioBaseTimestampMs +
+                (Double(audioFrameCount) * 1024.0 * 1000.0 / audioSampleRate)
+        } else {
+            // Fallback if sample rate not yet known (shouldn't happen post-Seq).
+            regularizedTimestampMs = rtmpTimestampMs
+        }
+        audioFrameCount += 1
         let presentationTimeStamp = CMTimeMake(
-            value: Int64(audioTimestamp + getBasePresentationTimeStamp(client)) + Int64(client.latency),
+            value: Int64(regularizedTimestampMs + getBasePresentationTimeStamp(client)) + Int64(client.latency),
             timescale: 1000
         )
         return audioBuffer.makeSampleBuffer(presentationTimeStamp)
