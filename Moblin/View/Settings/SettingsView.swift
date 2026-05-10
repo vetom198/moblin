@@ -67,17 +67,6 @@ struct SettingsView: View {
                 }
             }
             Section {
-                NavigationLink {
-                    StoreSettingsView(store: model.store)
-                } label: {
-                    Label {
-                        Text("Store (support us) ❤️")
-                    } icon: {
-                        Image(systemName: "cart")
-                    }
-                }
-            }
-            Section {
                 if database.showAllSettings {
                     NavigationLink {
                         IngestsSettingsView(model: model, database: database)

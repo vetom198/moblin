@@ -134,16 +134,11 @@ private struct IconAndSettingsView: View {
 
     var body: some View {
         HCenter {
-            Button {
-                model.toggleShowingPanel(type: nil, panel: .store)
-            } label: {
-                Image("\(store.iconImage)NoBackground")
-                    .interpolation(.high)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: controlBarButtonSize, height: controlBarButtonSize)
-            }
-            .buttonStyle(.borderless)
+            Image("\(store.iconImage)NoBackground")
+                .interpolation(.high)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: controlBarButtonSize, height: controlBarButtonSize)
             Button {
                 model.toggleShowingPanel(type: nil, panel: .settings)
             } label: {
