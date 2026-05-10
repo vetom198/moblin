@@ -54,11 +54,14 @@ extension AVCaptureDevice {
             return localizedName
         } else {
             let name = baseName()
+            // Use String(format:) explicitly instead of String(localized:) interpolation —
+            // the latter sometimes ships the literal "%@" placeholder unfilled in built
+            // catalogs, surfacing strings like "後置 %@" in the camera picker.
             switch position {
             case .back:
-                return String(localized: "Back \(name)")
+                return String(format: String(localized: "Back %@"), name)
             case .front:
-                return String(localized: "Front \(name)")
+                return String(format: String(localized: "Front %@"), name)
             default:
                 return name
             }
