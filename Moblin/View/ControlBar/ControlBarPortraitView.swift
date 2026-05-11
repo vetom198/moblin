@@ -110,28 +110,18 @@ private struct IconAndSettingsView: View {
     @ObservedObject var store: Store
 
     var body: some View {
-        HStack(spacing: 0) {
-            Image("\(store.iconImage)NoBackground")
-                .interpolation(.high)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .padding(.bottom, 4)
-                .offset(x: 2)
+        Button {
+            model.toggleShowingPanel(type: nil, panel: .settings)
+        } label: {
+            Image(systemName: "gearshape")
                 .frame(width: controlBarButtonSize, height: controlBarButtonSize)
-            Button {
-                model.toggleShowingPanel(type: nil, panel: .settings)
-            } label: {
-                Image(systemName: "gearshape")
-                    .frame(width: controlBarButtonSize, height: controlBarButtonSize)
-                    .overlay(
-                        Circle()
-                            .stroke(.secondary)
-                    )
-                    .foregroundStyle(.white)
-            }
-            .buttonStyle(.plain)
-            .padding(.leading, 10)
+                .overlay(
+                    Circle()
+                        .stroke(.secondary)
+                )
+                .foregroundStyle(.white)
         }
+        .buttonStyle(.plain)
         .padding(.horizontal, 10)
     }
 }
