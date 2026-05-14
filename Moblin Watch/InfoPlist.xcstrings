@@ -1,432 +1,432 @@
 {
-  "sourceLanguage": "en",
-  "strings": {
-    "CFBundleName": {
-      "comment": "Bundle name",
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CTLiveGo"
+  "sourceLanguage" : "en",
+  "strings" : {
+    "CFBundleName" : {
+      "comment" : "Bundle name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "CTLiveGo"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "CTLiveGo"
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Moblin"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CTLiveGo"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "CTLiveGo"
           }
         },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CTLiveGo"
+        "sv" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "CTLiveGo"
           }
         },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CTLiveGo"
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "CTLiveGo"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CTLiveGo"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "CTLiveGo"
           }
         },
-        "zh-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CTLiveGo"
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "CTLiveGo"
           }
         }
       }
     },
-    "NSCameraUsageDescription": {
-      "comment": "Privacy - Camera Usage Description",
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ja"
+    "NSCameraUsageDescription" : {
+      "comment" : "Privacy - Camera Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ja"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Yes"
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Yes"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ja"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ja"
           }
         },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tak"
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tak"
           }
         },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tamam"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tamam"
           }
         },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "確定"
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "確定"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "是"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "是"
           }
         },
-        "zh-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "是"
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "是"
           }
         }
       }
     },
-    "NSHealthClinicalHealthRecordsShareUsageDescription": {
-      "comment": "Privacy - Health Records Usage Description",
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Moblin kann deine Herzfrequenz im Stream anzeigen."
+    "NSHealthClinicalHealthRecordsShareUsageDescription" : {
+      "comment" : "Privacy - Health Records Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moblin kann deine Herzfrequenz im Stream anzeigen."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Moblin can show your heart rate on stream."
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Moblin can show your heart rate on stream."
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Moblin peut afficher votre fréquence cardiaque sur le stream"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moblin peut afficher votre fréquence cardiaque sur le stream"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Moblin kan je hartslag op je stream laten zien."
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moblin kan je hartslag op je stream laten zien."
           }
         },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Moblin może pokazać twoje tętno podczas streamu."
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moblin może pokazać twoje tętno podczas streamu."
           }
         },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Moblin yayınınızda kalp atış hızınızı gösterebilir."
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moblin yayınınızda kalp atış hızınızı gösterebilir."
           }
         },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Moblin 可以把你的心率顯示在實況上"
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moblin 可以把你的心率顯示在實況上"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Moblin 可以在實況時顯示您的心率。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moblin 可以在實況時顯示您的心率。"
           }
         },
-        "zh-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Moblin能夠在直播顯示你的心跳率"
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moblin能夠在直播顯示你的心跳率"
           }
         }
       }
     },
-    "NSHealthShareUsageDescription": {
-      "comment": "Privacy - Health Share Usage Description",
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Moblin kann deine Herzfrequenz im Stream anzeigen."
+    "NSHealthShareUsageDescription" : {
+      "comment" : "Privacy - Health Share Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moblin kann deine Herzfrequenz im Stream anzeigen."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Moblin can show your heart rate on stream."
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Moblin can show your heart rate on stream."
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Moblin peut afficher votre fréquence cardiaque sur le stream"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moblin peut afficher votre fréquence cardiaque sur le stream"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Moblin kan je hartslag op je stream laten zien."
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moblin kan je hartslag op je stream laten zien."
           }
         },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Moblin może pokazać twoje tętno podczas streamu."
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moblin może pokazać twoje tętno podczas streamu."
           }
         },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Moblin yayınınızda kalp atış hızınızı gösterebilir."
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moblin yayınınızda kalp atış hızınızı gösterebilir."
           }
         },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Moblin 可以把你的心率顯示在實況上"
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moblin 可以把你的心率顯示在實況上"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Moblin 可以在實況時顯示您的心率。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moblin 可以在實況時顯示您的心率。"
           }
         },
-        "zh-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Moblin能夠在直播顯示你的心跳率"
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moblin能夠在直播顯示你的心跳率"
           }
         }
       }
     },
-    "NSHealthUpdateUsageDescription": {
-      "comment": "Privacy - Health Update Usage Description",
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Moblin kann deine Herzfrequenz im Stream anzeigen."
+    "NSHealthUpdateUsageDescription" : {
+      "comment" : "Privacy - Health Update Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moblin kann deine Herzfrequenz im Stream anzeigen."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Moblin can show your heart rate on stream."
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Moblin can show your heart rate on stream."
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Moblin peut afficher votre fréquence cardiaque sur le stream"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moblin peut afficher votre fréquence cardiaque sur le stream"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Moblin kan je hartslag op je stream laten zien."
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moblin kan je hartslag op je stream laten zien."
           }
         },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Moblin może pokazać twoje tętno podczas streamu."
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moblin może pokazać twoje tętno podczas streamu."
           }
         },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Moblin yayınınızda kalp atış hızınızı gösterebilir."
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moblin yayınınızda kalp atış hızınızı gösterebilir."
           }
         },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Moblin 可以把你的心率顯示在實況上"
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moblin 可以把你的心率顯示在實況上"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Moblin 可以在實況時顯示您的心率。"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moblin 可以在實況時顯示您的心率。"
           }
         },
-        "zh-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Moblin能夠在直播顯示你的心跳率"
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moblin能夠在直播顯示你的心跳率"
           }
         }
       }
     },
-    "NSMicrophoneUsageDescription": {
-      "comment": "Privacy - Microphone Usage Description",
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ja"
+    "NSMicrophoneUsageDescription" : {
+      "comment" : "Privacy - Microphone Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ja"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Yes"
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Yes"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ja"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ja"
           }
         },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tak"
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tak"
           }
         },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "確定"
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "確定"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "是"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "是"
           }
         },
-        "zh-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "是"
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "是"
           }
         }
       }
     },
-    "NSPhotoLibraryAddUsageDescription": {
-      "comment": "Privacy - Photo Library Additions Usage Description",
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ja"
+    "NSPhotoLibraryAddUsageDescription" : {
+      "comment" : "Privacy - Photo Library Additions Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ja"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Yes"
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Yes"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ja"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ja"
           }
         },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tak"
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tak"
           }
         },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "確定"
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "確定"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "是"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "是"
           }
         },
-        "zh-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "是"
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "是"
           }
         }
       }
     },
-    "NSPhotoLibraryUsageDescription": {
-      "comment": "Privacy - Photo Library Usage Description",
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ja"
+    "NSPhotoLibraryUsageDescription" : {
+      "comment" : "Privacy - Photo Library Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ja"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Yes"
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Yes"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ja"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ja"
           }
         },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tak"
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tak"
           }
         },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "確定"
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "確定"
           }
         },
-        "zh-Hant-TW": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "是"
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "是"
           }
         },
-        "zh-HK": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "是"
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "是"
           }
         }
       }
     }
   },
-  "version": "1.0"
+  "version" : "1.0"
 }

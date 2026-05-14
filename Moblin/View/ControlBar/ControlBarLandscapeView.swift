@@ -131,22 +131,67 @@ private struct StatusView: View {
 private struct IconAndSettingsView: View {
     let model: Model
     @ObservedObject var store: Store
+    @Binding var drawerOpen: Bool
 
     var body: some View {
-        HCenter {
+        HStack(spacing: 8) {
             Button {
                 model.toggleShowingPanel(type: nil, panel: .settings)
             } label: {
                 Image(systemName: "gearshape")
                     .frame(width: controlBarButtonSize, height: controlBarButtonSize)
-                    .overlay(
-                        Circle()
-                            .stroke(.secondary)
-                    )
+                    .overlay(Circle().stroke(.secondary))
+                    .foregroundStyle(.white)
+            }
+            .buttonStyle(.borderless)
+            Button {
+                drawerOpen.toggle()
+            } label: {
+                Image(systemName: drawerOpen ? "shippingbox.fill" : "shippingbox")
+                    .frame(width: controlBarButtonSize, height: controlBarButtonSize)
+                    .overlay(Circle().stroke(.secondary))
                     .foregroundStyle(.white)
             }
             .buttonStyle(.borderless)
         }
+    }
+}
+
+private struct CompactDrawerButton: View {
+    let model: Model
+    let panel: ShowingPanel
+    let icon: String
+    let label: String
+
+    var body: some View {
+        Button {
+            model.toggleShowingPanel(type: nil, panel: panel)
+        } label: {
+            VStack(spacing: 2) {
+                Image(systemName: icon)
+                    .frame(width: controlBarButtonSize, height: controlBarButtonSize)
+                    .overlay(Circle().stroke(.secondary))
+                    .foregroundStyle(.white)
+                Text(label)
+                    .font(.system(size: 9))
+                    .foregroundStyle(.white)
+            }
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+private struct CompactDrawerView: View {
+    let model: Model
+
+    var body: some View {
+        VStack(spacing: 10) {
+            CompactDrawerButton(model: model, panel: .bitrate, icon: "speedometer", label: String(localized: "Bitrate"))
+            CompactDrawerButton(model: model, panel: .mic, icon: "mic", label: String(localized: "Mic"))
+            CompactDrawerButton(model: model, panel: .recordings, icon: "record.circle", label: String(localized: "Record"))
+            CompactDrawerButton(model: model, panel: .obs, icon: "tv", label: "OBS")
+        }
+        .padding(.top, 10)
     }
 }
 
@@ -173,29 +218,35 @@ private struct PageView: View {
 
 private struct MainPageView: View {
     let model: Model
-    let quickButtons: QuickButtons
-    let quickButtonsSettings: SettingsQuickButtons
+    @ObservedObject var quickButtons: QuickButtons
+    @ObservedObject var quickButtonsSettings: SettingsQuickButtons
     let store: Store
     let width: Double
+    // Default: compact view with 4 fixed buttons (Bitrate / Mic / Record /
+    // OBS). When the user taps the box icon we swap to the original
+    // multi-button list configured in Settings > Quick buttons.
+    @State private var showFullPanel: Bool = false
 
     private func buttonsWidth() -> Double {
-        if quickButtonsSettings.bigButtons, quickButtonsSettings.twoColumns {
-            width - 20
-        } else {
-            width - 10
-        }
+        width - 10
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            IconAndSettingsView(model: model, store: store)
+        VStack(alignment: .center, spacing: 0) {
+            IconAndSettingsView(model: model, store: store, drawerOpen: $showFullPanel)
                 .padding(.vertical, 2)
                 .frame(width: buttonsWidth())
-            PageView(model: model,
-                     quickButtons: quickButtons,
-                     quickButtonsSettings: quickButtonsSettings,
-                     page: 0,
-                     width: width)
+            if showFullPanel {
+                PageView(model: model,
+                         quickButtons: quickButtons,
+                         quickButtonsSettings: quickButtonsSettings,
+                         page: 0,
+                         width: width)
+            } else {
+                CompactDrawerView(model: model)
+                    .frame(width: buttonsWidth())
+            }
+            Spacer(minLength: 0)
             HStack {
                 Spacer(minLength: 0)
                 StreamButton()
@@ -203,6 +254,7 @@ private struct MainPageView: View {
                 Spacer(minLength: 0)
             }
             .frame(width: buttonsWidth())
+            .padding(.bottom, 8)
         }
     }
 }
@@ -235,78 +287,6 @@ private struct PageIndicatorView: View {
     }
 }
 
-private struct PagesView: View {
-    let model: Model
-    @ObservedObject var quickButtons: QuickButtons
-    @ObservedObject var quickButtonsSettings: SettingsQuickButtons
-    let width: Double
-
-    private func offsetX() -> Double {
-        if quickButtonsSettings.bigButtons, quickButtonsSettings.twoColumns {
-            -6
-        } else {
-            -1
-        }
-    }
-
-    var body: some View {
-        if #available(iOS 17, *) {
-            VStack {
-                ScrollView(.horizontal) {
-                    HStack {
-                        Group {
-                            MainPageView(model: model,
-                                         quickButtons: quickButtons,
-                                         quickButtonsSettings: quickButtonsSettings,
-                                         store: model.store,
-                                         width: width)
-                                .id(1)
-                            ForEach(1 ..< controlBarPages, id: \.self) { page in
-                                if !quickButtons.pairs[page].isEmpty {
-                                    PageView(model: model,
-                                             quickButtons: quickButtons,
-                                             quickButtonsSettings: quickButtonsSettings,
-                                             page: page,
-                                             width: width)
-                                        .id(page + 1)
-                                }
-                            }
-                        }
-                        .padding(.leading, 5)
-                        .containerRelativeFrame(.horizontal, count: 1, spacing: 0, alignment: .leading)
-                    }
-                    .scrollTargetLayout()
-                }
-                .scrollTargetBehavior(ControlBarPageScrollTargetBehavior(model: model))
-                .scrollIndicators(.never)
-                .scrollPosition(id: $quickButtons.activePage)
-                .ignoresSafeArea(.all, edges: edgesToIgnore())
-                .overlay(alignment: .bottom) {
-                    if !isMac() {
-                        PageIndicatorView(quickButtons: quickButtons)
-                            .offset(.init(width: offsetX(), height: 13))
-                    }
-                }
-                if isMac() {
-                    PageIndicatorView(quickButtons: quickButtons)
-                        .padding(.top, 1)
-                }
-            }
-        } else {
-            ScrollView(.horizontal) {
-                MainPageView(model: model,
-                             quickButtons: quickButtons,
-                             quickButtonsSettings: quickButtonsSettings,
-                             store: model.store,
-                             width: width)
-                    .padding(.leading, 5)
-            }
-            .scrollIndicators(.never)
-            .ignoresSafeArea(.all, edges: edgesToIgnore())
-        }
-    }
-}
-
 struct ControlBarLandscapeView: View {
     let model: Model
     @ObservedObject var quickButtons: SettingsQuickButtons
@@ -321,13 +301,14 @@ struct ControlBarLandscapeView: View {
                     .frame(width: controlBarWidthDefault)
                 Spacer(minLength: 0)
             }
-            PagesView(model: model,
-                      quickButtons: model.quickButtons,
-                      quickButtonsSettings: quickButtons,
-                      width: controlBarWidth(quickButtons: quickButtons))
+            MainPageView(model: model,
+                         quickButtons: model.quickButtons,
+                         quickButtonsSettings: quickButtons,
+                         store: model.store,
+                         width: controlBarWidthDefault)
         }
         .padding(.vertical, 0)
-        .frame(width: controlBarWidth(quickButtons: quickButtons))
+        .frame(width: controlBarWidthDefault)
         .background(.black)
         .ignoresSafeArea(.all, edges: edgesToIgnore())
     }
