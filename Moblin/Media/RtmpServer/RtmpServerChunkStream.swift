@@ -27,10 +27,12 @@ class RtmpServerChunkStream: @unchecked Sendable {
     // which causes downstream AAC decoders (OBS ffmpeg, GStreamer avdec_aac)
     // to enter a permanent error state when the jitter is large.
     // Fix: anchor PTS to the first frame's RTMP timestamp, then advance by
-    // exactly (1024 / sampleRate) seconds per frame. AAC LC frames are always
-    // 1024 samples (matches the existing `frameCapacity: 1024` assumption).
+    // exactly (samplesPerFrame / sampleRate) seconds per frame. AAC LC = 1024
+    // samples per frame; AAC SBR (HE-AAC) = 2048 because SBR doubles the
+    // sample rate via spectral band replication.
     private var audioFrameCount: Int64 = 0
     private var audioSampleRate: Double = 0
+    private var audioSamplesPerFrame: Double = 1024
     private var audioBaseTimestampMs: Double = -1
 
     init(client: RtmpServerClient, streamId: UInt16) {
@@ -379,7 +381,9 @@ class RtmpServerChunkStream: @unchecked Sendable {
         // Reset PTS regularization state when audio format is (re)negotiated.
         audioFrameCount = 0
         audioSampleRate = audioFormat.sampleRate
+        audioSamplesPerFrame = Self.samplesPerFrame(for: config.type)
         audioBaseTimestampMs = -1
+        logger.info("rtmp-server: PTS regularization: type=\(config.type.rawValue), samplesPerFrame=\(audioSamplesPerFrame), sampleRate=\(audioSampleRate)")
     }
 
     private func processMessageAudioTypeRaw(client: RtmpServerClient, codec: FlvAudioCodec) {
@@ -639,8 +643,9 @@ class RtmpServerChunkStream: @unchecked Sendable {
                                        audioBuffer: AVAudioPCMBuffer) -> CMSampleBuffer?
     {
         // PTS regularization: ignore RTMP messageTimestamp jitter and reconstruct
-        // a perfectly regular PTS based on AAC frame count × samples-per-frame / sampleRate.
-        // See member variable comments above for rationale.
+        // a perfectly regular PTS based on AAC frame count × samples-per-frame
+        // / sampleRate. samples-per-frame depends on the AAC profile (1024 for
+        // LC, 2048 for SBR/HE-AAC) — set in processMessageAudioTypeSeq.
         let rtmpTimestampMs = mediaTimestamp - mediaTimestampZero
         if audioBaseTimestampMs < 0 {
             audioBaseTimestampMs = rtmpTimestampMs
@@ -648,7 +653,7 @@ class RtmpServerChunkStream: @unchecked Sendable {
         let regularizedTimestampMs: Double
         if audioSampleRate > 0 {
             regularizedTimestampMs = audioBaseTimestampMs +
-                (Double(audioFrameCount) * 1024.0 * 1000.0 / audioSampleRate)
+                (Double(audioFrameCount) * audioSamplesPerFrame * 1000.0 / audioSampleRate)
         } else {
             // Fallback if sample rate not yet known (shouldn't happen post-Seq).
             regularizedTimestampMs = rtmpTimestampMs
@@ -659,6 +664,15 @@ class RtmpServerChunkStream: @unchecked Sendable {
             timescale: 1000
         )
         return audioBuffer.makeSampleBuffer(presentationTimeStamp)
+    }
+
+    // AAC profile → samples per access unit. LC = 1024, SBR/PS = 2048 because
+    // SBR upsamples the core by 2x (output samples per frame == 2x core).
+    private static func samplesPerFrame(for objectType: MpegTsAudioConfig.AudioObjectType) -> Double {
+        switch objectType {
+        case .aacSbr: 2048
+        default: 1024
+        }
     }
 
     private func getBasePresentationTimeStamp(_ client: RtmpServerClient) -> Double {

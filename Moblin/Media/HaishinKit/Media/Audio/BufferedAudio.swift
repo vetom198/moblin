@@ -50,12 +50,26 @@ class BufferedAudio {
     }
 
     func appendSampleBuffer(_ sampleBuffer: CMSampleBuffer) {
-        sampleBuffers.append(sampleBuffer)
-        hasBufferBeenAppended = true
         if !isInitialized {
             isInitialized = true
             initialize(sampleBuffer: sampleBuffer)
         }
+        // Source-driven output for external audio (RTMP / SRTLA / RIST / etc).
+        // The previous timer-driven path used the iPad clock to pace output and
+        // overwrote the upstream PTS, so cross-clock drift between the iPad and
+        // a professional source (ATEM's hardware encoder) caused 1024-sample
+        // frames to be duplicated or dropped within a 0.05s deadband — audible
+        // as robotic stutter at the OBS end. The RtmpServerChunkStream layer
+        // already regularises PTS to perfectly spaced 21.33ms intervals, so we
+        // just forward each input buffer with its own PTS and let the source
+        // dictate cadence.
+        if !manualOutput {
+            isOutputting = true
+            delegate?.didOutputBufferedSampleBuffer(cameraId: cameraId, sampleBuffer: sampleBuffer)
+            return
+        }
+        sampleBuffers.append(sampleBuffer)
+        hasBufferBeenAppended = true
         if !isOutputting {
             isOutputting = true
             startOutput()
