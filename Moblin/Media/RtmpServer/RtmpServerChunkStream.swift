@@ -34,6 +34,12 @@ class RtmpServerChunkStream: @unchecked Sendable {
     private var audioSampleRate: Double = 0
     private var audioSamplesPerFrame: Double = 1024
     private var audioBaseTimestampMs: Double = -1
+    // Remember the audio format so we don't re-anchor PTS on every Seq packet.
+    // ATEM and other sources sometimes re-emit the AAC sequence header during
+    // a normal stream (e.g. on internal reconnect) without actually changing
+    // the format; resetting audioFrameCount in that case shifts audio relative
+    // to video PTS forever.
+    private var previousAudioConfig: MpegTsAudioConfig?
 
     init(client: RtmpServerClient, streamId: UInt16) {
         self.client = client
@@ -378,12 +384,22 @@ class RtmpServerChunkStream: @unchecked Sendable {
         if audioDecoder == nil {
             logger.info("rtmp-server: client: Failed to create audio decdoer")
         }
-        // Reset PTS regularization state when audio format is (re)negotiated.
-        audioFrameCount = 0
-        audioSampleRate = audioFormat.sampleRate
-        audioSamplesPerFrame = Self.samplesPerFrame(for: config.type)
-        audioBaseTimestampMs = -1
-        logger.info("rtmp-server: PTS regularization: type=\(config.type.rawValue), samplesPerFrame=\(audioSamplesPerFrame), sampleRate=\(audioSampleRate)")
+        // Only reset PTS regularization state if the audio format actually
+        // changed. Sources sometimes re-send the AAC Seq header mid-stream
+        // (ATEM does this on internal reconnects), and re-anchoring the
+        // audio time base while video PTS keeps advancing introduces a
+        // permanent A/V offset.
+        let configChanged = previousAudioConfig != config
+        previousAudioConfig = config
+        if configChanged {
+            audioFrameCount = 0
+            audioSampleRate = audioFormat.sampleRate
+            audioSamplesPerFrame = Self.samplesPerFrame(for: config.type)
+            audioBaseTimestampMs = -1
+            logger.info("rtmp-server: PTS regularization: type=\(config.type.rawValue), samplesPerFrame=\(audioSamplesPerFrame), sampleRate=\(audioSampleRate)")
+        } else {
+            logger.info("rtmp-server: AAC Seq header re-sent with same format — keeping PTS anchor")
+        }
     }
 
     private func processMessageAudioTypeRaw(client: RtmpServerClient, codec: FlvAudioCodec) {
@@ -642,21 +658,29 @@ class RtmpServerChunkStream: @unchecked Sendable {
     private func makeAudioSampleBuffer(client: RtmpServerClient,
                                        audioBuffer: AVAudioPCMBuffer) -> CMSampleBuffer?
     {
-        // PTS regularization: ignore RTMP messageTimestamp jitter and reconstruct
-        // a perfectly regular PTS based on AAC frame count × samples-per-frame
-        // / sampleRate. samples-per-frame depends on the AAC profile (1024 for
-        // LC, 2048 for SBR/HE-AAC) — set in processMessageAudioTypeSeq.
+        // PTS regularization: ignore short-term RTMP messageTimestamp jitter
+        // and reconstruct a perfectly regular PTS as
+        //   anchor + frameCount * samplesPerFrame / sampleRate.
+        // Drift clamp (±100ms): if the regularized PTS diverges from the
+        // actual RTMP timestamp by more than this, the source has likely
+        // re-clocked (downstream BufferedAudio dropped frames, network
+        // jitter caused a long stall, etc.). Re-anchor to the current RTMP
+        // timestamp so audio stays within 100ms of video — they're both
+        // anchored to the same RTMP message timestamp domain via
+        // getBasePresentationTimeStamp, so this keeps lip-sync.
         let rtmpTimestampMs = mediaTimestamp - mediaTimestampZero
-        if audioBaseTimestampMs < 0 {
+        if audioBaseTimestampMs < 0 || audioSampleRate <= 0 {
             audioBaseTimestampMs = rtmpTimestampMs
+            audioFrameCount = 0
         }
-        let regularizedTimestampMs: Double
-        if audioSampleRate > 0 {
-            regularizedTimestampMs = audioBaseTimestampMs +
-                (Double(audioFrameCount) * audioSamplesPerFrame * 1000.0 / audioSampleRate)
-        } else {
-            // Fallback if sample rate not yet known (shouldn't happen post-Seq).
-            regularizedTimestampMs = rtmpTimestampMs
+        var regularizedTimestampMs = audioBaseTimestampMs +
+            (Double(audioFrameCount) * audioSamplesPerFrame * 1000.0 / audioSampleRate)
+        let drift = regularizedTimestampMs - rtmpTimestampMs
+        if abs(drift) > 100, audioFrameCount > 0 {
+            logger.info("rtmp-server: audio PTS drift \(Int(drift))ms — re-anchoring to RTMP timestamp")
+            audioBaseTimestampMs = rtmpTimestampMs
+            audioFrameCount = 0
+            regularizedTimestampMs = audioBaseTimestampMs
         }
         audioFrameCount += 1
         let presentationTimeStamp = CMTimeMake(
