@@ -153,6 +153,15 @@ private struct IconAndSettingsView: View {
                     .foregroundStyle(.white)
             }
             .buttonStyle(.borderless)
+            Button {
+                model.reattachCamera()
+            } label: {
+                Image(systemName: "arrow.clockwise")
+                    .frame(width: controlBarButtonSize, height: controlBarButtonSize)
+                    .overlay(Circle().stroke(.secondary))
+                    .foregroundStyle(.white)
+            }
+            .buttonStyle(.borderless)
         }
     }
 }
