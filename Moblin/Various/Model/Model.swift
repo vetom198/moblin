@@ -21,8 +21,8 @@ import WebKit
 private enum BackgroundRunLevel {
     // Streaming and recording
     case full
-    // Moblink and cat printer
-    case service(keepChatRunning: Bool, keepBatteryLevelRunning: Bool)
+    // Moblink, cat printer and CTLive
+    case service(keepChatRunning: Bool, keepBatteryLevelRunning: Bool, keepStatusRunning: Bool)
     case off
 }
 
@@ -47,6 +47,7 @@ enum ShowingPanel {
     case streamingButtonSettings
     case live
     case macros
+    case ctLive
 
     func buttonsBackgroundColor() -> Color {
         if self == .chat {
@@ -674,6 +675,9 @@ final class Model: NSObject, ObservableObject, @unchecked Sendable {
     var replayEffect: ReplayEffect?
     var locationManager = Location()
     var realtimeIrl: RealtimeIrl?
+    let ctLive = CtLiveTracker()
+    var ctLiveControlDisconnectedSince: ContinuousClock.Instant?
+    var ctLiveControlRetryNotBefore: ContinuousClock.Instant?
     var supportsAppleLog: Bool = false
     let weatherManager = WeatherManager()
     let geographyManager = GeographyManager()
@@ -782,6 +786,7 @@ final class Model: NSObject, ObservableObject, @unchecked Sendable {
             .autoSceneSwitcher,
             .live,
             .macros,
+            .ctLive,
         ].contains(type)
     }
 
@@ -1110,6 +1115,7 @@ final class Model: NSObject, ObservableObject, @unchecked Sendable {
                                                name: NSNotification.Name.GCControllerDidDisconnect,
                                                object: nil)
         GCController.startWirelessControllerDiscovery {}
+        setupCtLive()
         reloadLocation()
         currentStreamId = stream.id
         lutUpdated()
@@ -1424,11 +1430,15 @@ final class Model: NSObject, ObservableObject, @unchecked Sendable {
                 disableScreenPreview()
             }
             startLiveActivity()
-        case let .service(keepChatRunning, keepBatteryLevelRunning):
+        case let .service(keepChatRunning, keepBatteryLevelRunning, keepStatusRunning):
             inServiceBackground = true
             disableScreenPreview()
             stopPeriodicTimers(keepChatRunning: keepChatRunning,
-                               keepBatteryLevelRunning: keepBatteryLevelRunning)
+                               keepBatteryLevelRunning: keepBatteryLevelRunning,
+                               keepStatusRunning: keepStatusRunning)
+            // A ride running in the background has to survive the app being
+            // killed, so flush the session to disk on the way out.
+            storeSettings()
             startLiveActivity()
         case .off:
             storeSettings()
@@ -1583,10 +1593,16 @@ final class Model: NSObject, ObservableObject, @unchecked Sendable {
             return .off
         }
         let keepChatRunning = database.chat.background || database.catPrinters.backgroundPrinting
-        if keepChatRunning || database.moblink.relay.enabled {
+        // CTLive keeps uploading with the screen locked, which is the normal way
+        // to ride. Remote control counts too: the whole point is that the
+        // director can start the stream on a phone sitting idle in a pocket, and
+        // a suspended app cannot be reached.
+        let keepCtLiveRunning = ctLive.isActive || ctLiveIsRemoteControlActive()
+        if keepChatRunning || database.moblink.relay.enabled || keepCtLiveRunning {
             return .service(
                 keepChatRunning: keepChatRunning,
-                keepBatteryLevelRunning: database.moblink.relay.enabled
+                keepBatteryLevelRunning: database.moblink.relay.enabled,
+                keepStatusRunning: keepCtLiveRunning
             )
         }
         return .off
@@ -1663,7 +1679,11 @@ final class Model: NSObject, ObservableObject, @unchecked Sendable {
         let monotonicNow = ContinuousClock.now
         updateDigitalClock(now: now)
         removeOldChatMessages(now: monotonicNow)
-        guard !inServiceBackground else {
+        if inServiceBackground {
+            // The screen is off but a ride may be running and a director may be
+            // watching. Keep the race clock and the status feed alive.
+            ctLive.tick()
+            sendPeriodicRemoteControlStreamerStatus()
             return
         }
         updateStreamUptime(now: monotonicNow)
@@ -1681,6 +1701,7 @@ final class Model: NSObject, ObservableObject, @unchecked Sendable {
         updateDistance()
         updateSlope()
         updateAverageSpeed(now: monotonicNow)
+        ctLive.tick()
         updateTextEffects(now: now, timestamp: monotonicNow)
         updateMapEffects()
         updateScoreboardEffects()
@@ -1718,6 +1739,7 @@ final class Model: NSObject, ObservableObject, @unchecked Sendable {
 
     private func handle10sTimer() {
         let monotonicNow = ContinuousClock.now
+        updateCtLiveRemoteControl(now: monotonicNow)
         media.logStatistics()
         updateObsStatus()
         updateRemoteControlStatus()
@@ -1740,11 +1762,16 @@ final class Model: NSObject, ObservableObject, @unchecked Sendable {
         updateBatteryLevel()
     }
 
-    func stopPeriodicTimers(keepChatRunning: Bool, keepBatteryLevelRunning: Bool) {
+    func stopPeriodicTimers(keepChatRunning: Bool,
+                            keepBatteryLevelRunning: Bool,
+                            keepStatusRunning: Bool = false)
+    {
         periodicTimer20ms.stop()
         if !keepChatRunning {
             periodicTimer200ms.stop()
-            periodicTimer1s.stop()
+            if !keepStatusRunning {
+                periodicTimer1s.stop()
+            }
         }
         periodicTimer3s.stop()
         periodicTimer5s.stop()

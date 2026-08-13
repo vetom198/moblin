@@ -33,14 +33,19 @@ extension Model {
     }
 
     func isLocationEnabled() -> Bool {
-        database.location.enabled
+        // CTLive needs location updates whether or not the user turned on
+        // Moblin's own location features. Remote control needs them too, not for
+        // the position but because they are what keeps the app running once the
+        // screen goes off. Without that the director cannot reach an idle phone.
+        database.location.enabled || ctLive.isActive || ctLiveIsRemoteControlActive()
     }
 
     private func handleLocationUpdate(location: CLLocation) {
-        guard isLive else {
+        guard !isLocationInPrivacyRegion(location: location) else {
             return
         }
-        guard !isLocationInPrivacyRegion(location: location) else {
+        ctLive.handleLocation(location: location)
+        guard isLive else {
             return
         }
         realtimeIrl?.update(location: location)

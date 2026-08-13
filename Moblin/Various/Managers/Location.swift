@@ -60,6 +60,14 @@ class Location: NSObject {
         case .twoHundredMeters:
             manager.distanceFilter = 200
         }
+        manager.activityType = .fitness
+        // iOS otherwise pauses updates when it decides we stopped moving, which
+        // stalls distance and live tracking uploads at every red light.
+        manager.pausesLocationUpdatesAutomatically = false
+        #if !targetEnvironment(macCatalyst)
+        manager.allowsBackgroundLocationUpdates = true
+        manager.showsBackgroundLocationIndicator = true
+        #endif
         manager.requestWhenInUseAuthorization()
         manager.startUpdatingLocation()
         backgroundActivity.start()

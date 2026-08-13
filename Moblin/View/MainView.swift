@@ -222,6 +222,13 @@ private struct MenuView: View {
                 QuickButtonMacrosView(model: model, macros: model.database.macros)
                     .navigationBarTitleDisplayMode(.inline)
             }
+        case .ctLive:
+            NavigationStack {
+                QuickButtonCtLiveView(model: model,
+                                      ctLive: model.ctLive,
+                                      ctLiveSettings: model.database.ctLive)
+                    .navigationBarTitleDisplayMode(.inline)
+            }
         case .none:
             EmptyView()
         }

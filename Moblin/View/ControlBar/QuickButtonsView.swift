@@ -428,6 +428,10 @@ struct QuickButtonsInnerView: View {
         model.toggleGimbalTracking()
     }
 
+    private func ctLiveAction() {
+        model.toggleShowingPanel(type: .ctLive, panel: .ctLive)
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             ZStack {
@@ -989,6 +993,17 @@ struct QuickButtonsInnerView: View {
                                          buttonSize: size)
                         {
                             gimbalTrackingAction()
+                        }
+                    case .ctLive:
+                        ZStack {
+                            QuickButtonImage(model: model,
+                                             quickButtonsSettings: quickButtonsSettings,
+                                             state: state,
+                                             buttonSize: size)
+                            {
+                                ctLiveAction()
+                            }
+                            ButtonTextOverlayView(text: String(localized: "CTLive"))
                         }
                     }
                 }

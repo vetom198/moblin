@@ -75,6 +75,11 @@ struct SettingsView: View {
                 } label: {
                     Label("Location", systemImage: "location")
                 }
+                NavigationLink {
+                    CtLiveSettingsView(model: model, ctLive: database.ctLive, tracker: model.ctLive)
+                } label: {
+                    Label("CTLive", systemImage: "flag.checkered")
+                }
             }
             Section {
                 if database.showAllSettings {

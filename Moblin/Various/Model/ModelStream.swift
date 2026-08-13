@@ -87,6 +87,9 @@ extension Model {
         if database.location.resetWhenGoingLive {
             resetLocationData()
         }
+        if database.ctLive.enabled, database.ctLive.startWhenGoingLive, !ctLive.isActive {
+            ctLiveStartUploading()
+        }
         streamLog.removeAll()
         setIsLive(value: true)
         streaming = true

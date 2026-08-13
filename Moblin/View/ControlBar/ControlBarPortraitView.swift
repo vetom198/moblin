@@ -173,10 +173,21 @@ private struct CompactDrawerRow: View {
 
     var body: some View {
         HStack(spacing: 14) {
-            CompactDrawerButton(model: model, panel: .bitrate, icon: "speedometer", label: String(localized: "Bitrate"))
+            CompactDrawerButton(
+                model: model,
+                panel: .bitrate,
+                icon: "speedometer",
+                label: String(localized: "Bitrate")
+            )
             CompactDrawerButton(model: model, panel: .mic, icon: "mic", label: String(localized: "Mic"))
-            CompactDrawerButton(model: model, panel: .recordings, icon: "record.circle", label: String(localized: "Record"))
+            CompactDrawerButton(
+                model: model,
+                panel: .recordings,
+                icon: "record.circle",
+                label: String(localized: "Record")
+            )
             CompactDrawerButton(model: model, panel: .obs, icon: "tv", label: "OBS")
+            CompactDrawerButton(model: model, panel: .ctLive, icon: "flag.checkered", label: "CTLive")
         }
     }
 }

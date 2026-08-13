@@ -1141,6 +1141,7 @@ class Database: Codable, ObservableObject {
     var talkback: SettingsTalkback = .init()
     var gimbal: SettingsGimbal = .init()
     var atemDevices: SettingsAtemDevices = .init()
+    var ctLive: SettingsCtLive = .init()
 
     static func fromString(settings: String) throws -> Database {
         let database = try JSONDecoder().decode(
@@ -1251,7 +1252,8 @@ class Database: Codable, ObservableObject {
              beauty,
              talkBack,
              gimbal,
-             atemDevices
+             atemDevices,
+             ctLive
     }
 
     func encode(to encoder: any Encoder) throws {
@@ -1334,6 +1336,7 @@ class Database: Codable, ObservableObject {
         try container.encode(.talkBack, talkback)
         try container.encode(.gimbal, gimbal)
         try container.encode(.atemDevices, atemDevices)
+        try container.encode(.ctLive, ctLive)
     }
 
     init() {}
@@ -1466,6 +1469,7 @@ class Database: Codable, ObservableObject {
         talkback = container.decode(.talkBack, SettingsTalkback.self, .init())
         gimbal = container.decode(.gimbal, SettingsGimbal.self, .init())
         atemDevices = container.decode(.atemDevices, SettingsAtemDevices.self, .init())
+        ctLive = container.decode(.ctLive, SettingsCtLive.self, .init())
     }
 }
 
@@ -1650,6 +1654,10 @@ private func addMissingQuickButtonsPageOne(database: Database) {
     updateQuickButton(database: database, button: button)
     button = SettingsQuickButton(type: .browser,
                                  imageOn: "globe",
+                                 page: page)
+    updateQuickButton(database: database, button: button)
+    button = SettingsQuickButton(type: .ctLive,
+                                 imageOn: "flag.checkered",
                                  page: page)
     updateQuickButton(database: database, button: button)
 }
