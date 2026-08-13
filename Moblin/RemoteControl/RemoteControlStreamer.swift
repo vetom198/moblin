@@ -30,7 +30,7 @@ protocol RemoteControlStreamerDelegate: AnyObject {
     func remoteControlStreamerSetRemoteSceneData(data: RemoteControlRemoteSceneData)
     func remoteControlStreamerInstantReplay()
     func remoteControlStreamerSaveReplay()
-    func remoteControlStreamerStartStatus(interval: Int, filter: RemoteControlStartStatusFilter)
+    func remoteControlStreamerStartStatus(interval: Int, filter: RemoteControlStartStatusFilter?)
     func remoteControlStreamerStopStatus()
     func remoteControlStreamerGetScoreboardSports() -> [String]
     func remoteControlStreamerSetScoreboardSport(sportId: String)
@@ -48,6 +48,15 @@ protocol RemoteControlStreamerDelegate: AnyObject {
     func remoteControlStreamerMoveToGimbalPreset(id: UUID)
 }
 
+// Close codes the server uses to say "do not come back with this". Reconnecting
+// cannot fix any of them, so the streamer stops instead of hot looping.
+let remoteControlCredentialRevokedCloseCode: UInt16 = 4001
+let remoteControlNotAuthorizedCloseCode: UInt16 = 4004
+private let remoteControlTerminalCloseCodes: Set<UInt16> = [
+    remoteControlCredentialRevokedCloseCode,
+    remoteControlNotAuthorizedCloseCode,
+]
+
 class RemoteControlStreamer {
     private var clientUrl: URL
     private var password: String
@@ -57,15 +66,25 @@ class RemoteControlStreamer {
     private var connected = false
     private var encryption: RemoteControlEncryption
     private let keepAliveTimer = SimpleTimer(queue: .main)
+    private let pongDeadlineTimer = SimpleTimer(queue: .main)
     private var gotPong = true
+    private let additionalHeaders: [(String, String)]
+    private let onTerminalClose: ((UInt16) -> Void)?
     @AppStorage("remoteControlStreamerId") var id = ""
 
-    init(clientUrl: URL, password: String, delegate: any RemoteControlStreamerDelegate) {
+    init(clientUrl: URL,
+         password: String,
+         delegate: any RemoteControlStreamerDelegate,
+         additionalHeaders: [(String, String)] = [],
+         onTerminalClose: ((UInt16) -> Void)? = nil)
+    {
         self.clientUrl = clientUrl
         self.password = password
         self.delegate = delegate
+        self.additionalHeaders = additionalHeaders
+        self.onTerminalClose = onTerminalClose
         encryption = RemoteControlEncryption(password: password)
-        webSocket = .init(url: clientUrl)
+        webSocket = .init(url: clientUrl, additionalHeaders: additionalHeaders)
         if id.isEmpty {
             id = UUID().uuidString
         }
@@ -84,7 +103,7 @@ class RemoteControlStreamer {
     private func startInternal() {
         stopInternal()
         gotPong = true
-        webSocket = .init(url: clientUrl)
+        webSocket = .init(url: clientUrl, additionalHeaders: additionalHeaders)
         webSocket.delegate = self
         webSocket.start()
     }
@@ -140,22 +159,32 @@ class RemoteControlStreamer {
     }
 
     private func startKeepAlive() {
-        keepAliveTimer.startPeriodic(interval: 30) { [weak self] in
-            guard let self else {
+        // Ping early and often. A proxy or server idle timeout that only counts
+        // data frames will drop a connection that is merely quiet, and the first
+        // ping arriving at 30 s is too late to prove otherwise.
+        keepAliveTimer.startPeriodic(interval: 15, initial: 5) { [weak self] in
+            self?.sendPing()
+        }
+    }
+
+    private func sendPing() {
+        gotPong = false
+        send(message: .ping)
+        // On a mobile network a half open connection can sit there for minutes
+        // without an error, and the director would be controlling nothing. Give
+        // the pong a hard deadline instead of waiting for the next ping.
+        pongDeadlineTimer.startSingleShot(timeout: 10) { [weak self] in
+            guard let self, !gotPong else {
                 return
             }
-            if gotPong {
-                gotPong = false
-                send(message: .ping)
-            } else {
-                logger.info("remote-control-streamer: Pong not received")
-                startInternal()
-            }
+            logger.info("remote-control-streamer: Pong not received in time")
+            startInternal()
         }
     }
 
     private func stopKeepAlive() {
         keepAliveTimer.stop()
+        pongDeadlineTimer.stop()
     }
 
     private func send(message: RemoteControlMessageToAssistant) {
@@ -181,9 +210,15 @@ class RemoteControlStreamer {
                 handleRequest(id: id, data: data)
             case .pong:
                 gotPong = true
+                pongDeadlineTimer.stop()
             }
         } catch {
-            logger.info("remote-control-streamer: Decode failed")
+            // Log the message itself. "Decode failed" on its own is useless when
+            // bringing up a new assistant implementation. Redact first: an
+            // undecodable message is exactly the case where we do not know what
+            // is in it, and stream keys must never reach the log.
+            let redacted = redactSensitiveJsonValues(message).prefix(300)
+            logger.info("remote-control-streamer: Decode failed for \(redacted): \(error)")
             connectionErrorMessage = error.localizedDescription
         }
     }
@@ -370,5 +405,17 @@ extension RemoteControlStreamer: WebSocketClientDelegate {
 
     func webSocketClientReceiveMessage(_: WebSocketClient, string: String) {
         try? handleMessage(message: string)
+    }
+
+    func webSocketClientShouldReconnect(_: WebSocketClient, closeCode: UInt16) -> Bool {
+        guard remoteControlTerminalCloseCodes.contains(closeCode) else {
+            return true
+        }
+        logger.info("remote-control-streamer: Server closed with \(closeCode), not reconnecting")
+        connectionErrorMessage = closeCode == remoteControlCredentialRevokedCloseCode
+            ? String(localized: "Control credential revoked")
+            : String(localized: "Remote control not authorized")
+        onTerminalClose?(closeCode)
+        return false
     }
 }

@@ -35,7 +35,7 @@ enum RemoteControlRequest: Codable {
     case setRemoteSceneData(data: RemoteControlRemoteSceneData)
     case instantReplay
     case saveReplay
-    case startStatus(interval: Int, filter: RemoteControlStartStatusFilter)
+    case startStatus(interval: Int, filter: RemoteControlStartStatusFilter?)
     case stopStatus
     case getScoreboardSports
     case setScoreboardSport(sportId: String)

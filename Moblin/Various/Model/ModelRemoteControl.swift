@@ -62,6 +62,24 @@ extension Model {
     func reloadRemoteControlStreamer() {
         remoteControlStreamer?.stop()
         remoteControlStreamer = nil
+        if let (url, password, headers) = ctLiveRemoteControlConnection() {
+            // CTLive wins over a manually configured assistant. The app only
+            // supports one streamer connection, and during a race the director
+            // is the one who needs it.
+            remoteControlStreamer = RemoteControlStreamer(
+                clientUrl: url,
+                password: password,
+                delegate: self,
+                additionalHeaders: headers,
+                onTerminalClose: { [weak self] closeCode in
+                    self?.handleCtLiveControlClosed(closeCode: closeCode)
+                }
+            )
+            remoteControlStreamer?.start()
+            ctLiveControlDisconnectedSince = nil
+            logger.info("ct-live: Remote control connecting to \(url)")
+            return
+        }
         guard isRemoteControlStreamerConfigured() else {
             reloadTwitchEventSub()
             reloadChats()
@@ -78,6 +96,57 @@ extension Model {
             delegate: self
         )
         remoteControlStreamer!.start()
+    }
+
+    private func ctLiveRemoteControlConnection() -> (URL, String, [(String, String)])? {
+        let ctLiveSettings = database.ctLive
+        guard ctLiveSettings.enabled, ctLiveSettings.remoteControlEnabled else {
+            return nil
+        }
+        guard !ctLiveSettings.controlToken.isEmpty,
+              let url = URL(string: ctLiveSettings.controlUrl)
+        else {
+            return nil
+        }
+        var headers: [(String, String)] = []
+        // Django's AllowedHostsOriginValidator rejects a handshake with no
+        // Origin, and Network.framework sends none. Derive it from the control
+        // URL so dev and production both work without an app change.
+        if let origin = webSocketOrigin(of: url) {
+            headers.append(("Origin", origin))
+        }
+        return (url, ctLiveSettings.controlToken, headers)
+    }
+
+    private func webSocketOrigin(of url: URL) -> String? {
+        guard let host = url.host() else {
+            return nil
+        }
+        let scheme = url.scheme == "ws" ? "http" : "https"
+        if let port = url.port {
+            return "\(scheme)://\(host):\(port)"
+        }
+        return "\(scheme)://\(host)"
+    }
+
+    private func handleCtLiveControlClosed(closeCode: UInt16) {
+        if closeCode == remoteControlCredentialRevokedCloseCode {
+            // The token is dead. Drop it so we do not keep presenting it, and a
+            // pairing check will fetch the new one.
+            database.ctLive.controlToken = ""
+            makeErrorToast(title: String(localized: "CTLive remote control was revoked"),
+                           subTitle: String(localized: "Check the pairing status to get a new credential"))
+        } else {
+            // The backend refused the device, not the credential. Keep the
+            // setting on and retry slowly, so re-enabling control on the
+            // dashboard recovers without the operator touching the phone.
+            makeErrorToast(title: String(localized: "CTLive refused remote control"),
+                           subTitle: String(localized: "The device is unpaired or control is disabled"))
+            // The watchdog retries from here, no need for a timer of its own.
+            ctLiveControlRetryNotBefore = ContinuousClock.now.advanced(by: .seconds(60))
+            ctLiveControlDisconnectedSince = nil
+        }
+        updateRemoteControlStatus()
     }
 
     private func remoteControlStreamerSendTwitchStart() {
@@ -115,6 +184,9 @@ extension Model {
     }
 
     func isRemoteControlStreamerConfigured() -> Bool {
+        if ctLiveRemoteControlConnection() != nil {
+            return true
+        }
         let streamer = database.remoteControl.streamer
         return streamer.enabled && !streamer.url.isEmpty && !database.remoteControl.password.isEmpty
     }
@@ -347,6 +419,10 @@ extension Model {
         var topLeft: RemoteControlStatusTopLeft?
         var topRight: RemoteControlStatusTopRight?
         if let filter {
+            // general carries isLive and isRecording. An assistant that gates
+            // stream breaking commands on those needs them in every periodic
+            // status, not only in an unfiltered getStatus.
+            general = remoteControlStreamerCreateStatusGeneral()
             if filter.topRight {
                 topRight = remoteControlStreamerCreateStatusTopRight()
             }
@@ -668,8 +744,18 @@ extension Model: RemoteControlStreamerDelegate {
         handleGetSettings()
     }
 
+    // The operator is holding the camera and cannot see the dashboard. Anything
+    // a remote director changes has to be visible on the phone, otherwise the
+    // stream starts or the scene switches with no explanation.
+    private func announceRemoteControl(_ text: String) {
+        makeToast(title: text, vibrate: true)
+    }
+
     func remoteControlStreamerSetScene(id: UUID) {
         selectScene(id: id)
+        if let scene = findEnabledScene(id: id) {
+            announceRemoteControl(String(localized: "Director switched to scene \(scene.name)"))
+        }
     }
 
     func remoteControlStreamerSetAutoSceneSwitcher(id: UUID?) {
@@ -678,6 +764,7 @@ extension Model: RemoteControlStreamerDelegate {
 
     func remoteControlStreamerSetMic(id: String) {
         manualSelectMicById(id: id)
+        announceRemoteControl(String(localized: "Director changed the mic"))
     }
 
     func remoteControlStreamerSetBitratePreset(id: UUID) {
@@ -690,19 +777,32 @@ extension Model: RemoteControlStreamerDelegate {
     }
 
     func remoteControlStreamerSetRecord(on: Bool) {
+        // A target state, not a toggle. If the response to the first command was
+        // lost the director may send it again, and starting a second recording
+        // would abandon the one already running.
+        guard on != isRecording else {
+            return
+        }
         if on {
             startRecording()
+            announceRemoteControl(String(localized: "Director started recording"))
         } else {
             stopRecording()
+            announceRemoteControl(String(localized: "Director stopped recording"))
         }
         updateQuickButtonStates()
     }
 
     func remoteControlStreamerSetStream(on: Bool) {
+        guard on != isLive else {
+            return
+        }
         if on {
             startStream()
+            announceRemoteControl(String(localized: "Director went live"))
         } else {
             _ = stopStream()
+            announceRemoteControl(String(localized: "Director stopped the stream"))
         }
         updateQuickButtonStates()
     }
@@ -722,6 +822,8 @@ extension Model: RemoteControlStreamerDelegate {
 
     func remoteControlStreamerSetMute(on: Bool) {
         setMuteOn(value: on)
+        announceRemoteControl(on ? String(localized: "Director muted the mic")
+            : String(localized: "Director unmuted the mic"))
     }
 
     func remoteControlStreamerSetTorch(on: Bool) {
@@ -837,7 +939,7 @@ extension Model: RemoteControlStreamerDelegate {
         remoteSceneData.location = nil
     }
 
-    func remoteControlStreamerStartStatus(interval _: Int, filter: RemoteControlStartStatusFilter) {
+    func remoteControlStreamerStartStatus(interval _: Int, filter: RemoteControlStartStatusFilter?) {
         isRemoteControlAssistantRequestingStatus = true
         remoteControlAssistantRequestingStatusFilter = filter
     }

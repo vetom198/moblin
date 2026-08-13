@@ -9,6 +9,16 @@ protocol WebSocketClientDelegate: AnyObject {
     func webSocketClientConnected(_ webSocket: WebSocketClient)
     func webSocketClientDisconnected(_ webSocket: WebSocketClient)
     func webSocketClientReceiveMessage(_ webSocket: WebSocketClient, string: String)
+    // Lets a delegate stop the automatic reconnect when the server closed the
+    // connection for a reason that reconnecting cannot fix, for example a
+    // revoked credential.
+    func webSocketClientShouldReconnect(_ webSocket: WebSocketClient, closeCode: UInt16) -> Bool
+}
+
+extension WebSocketClientDelegate {
+    func webSocketClientShouldReconnect(_: WebSocketClient, closeCode _: UInt16) -> Bool {
+        true
+    }
 }
 
 final class WebSocketClient {
@@ -23,15 +33,18 @@ final class WebSocketClient {
     private var connected = false
     private var connectDelayMs = shortestDelayMs
     private let protocols: [String]?
+    private let additionalHeaders: [(String, String)]
 
     init(url: URL,
          loopback: Bool = false,
          cellular: Bool = true,
-         protocols: [String]? = nil)
+         protocols: [String]? = nil,
+         additionalHeaders: [(String, String)] = [])
     {
         self.url = url
         self.loopback = loopback
         self.protocols = protocols
+        self.additionalHeaders = additionalHeaders
         networkInterfaceTypeSelector = NetworkInterfaceTypeSelector(queue: .main, cellular: cellular)
         webSocket = NWWebSocket(url: url, requiredInterfaceType: .cellular)
     }
@@ -63,6 +76,11 @@ final class WebSocketClient {
             if let protocols {
                 options.setSubprotocols(protocols)
             }
+            // Network.framework sends no Origin header of its own. Servers that
+            // validate the origin reject the handshake without one.
+            if !additionalHeaders.isEmpty {
+                options.setAdditionalHeaders(additionalHeaders)
+            }
             webSocket = NWWebSocket(url: url,
                                     requiredInterfaceType: interfaceType,
                                     options: options)
@@ -86,7 +104,10 @@ final class WebSocketClient {
 
     private func startConnectTimer() {
         connected = false
-        connectTimer.startSingleShot(timeout: Double(connectDelayMs) / 1000) { [weak self] in
+        // Jitter keeps several devices coming back from the same dead spot from
+        // retrying in lockstep and hammering the link the moment it returns.
+        let jitter = Double.random(in: 0.8 ... 1.2)
+        connectTimer.startSingleShot(timeout: jitter * Double(connectDelayMs) / 1000) { [weak self] in
             self?.startInternal()
         }
         connectDelayMs *= 2
@@ -130,12 +151,29 @@ extension WebSocketClient: WebSocketConnectionDelegate {
     }
 
     func webSocketDidDisconnect(connection _: any WebSocketConnection,
-                                closeCode _: NWProtocolWebSocket.CloseCode, reason _: Data?)
+                                closeCode: NWProtocolWebSocket.CloseCode, reason _: Data?)
     {
-        logger.debug("websocket: Disconnected")
+        let code = Self.closeCodeValue(closeCode)
+        logger.debug("websocket: Disconnected with close code \(code.map(String.init) ?? "-")")
         stopInternal()
+        if let code, delegate?.webSocketClientShouldReconnect(self, closeCode: code) == false {
+            logger.info("websocket: Not reconnecting after close code \(code)")
+            delegate?.webSocketClientDisconnected(self)
+            return
+        }
         startConnectTimer()
         delegate?.webSocketClientDisconnected(self)
+    }
+
+    private static func closeCodeValue(_ closeCode: NWProtocolWebSocket.CloseCode) -> UInt16? {
+        switch closeCode {
+        case let .applicationCode(code):
+            code
+        case let .privateCode(code):
+            code
+        default:
+            nil
+        }
     }
 
     func webSocketViabilityDidChange(connection _: any WebSocketConnection, isViable: Bool) {
