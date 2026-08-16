@@ -497,6 +497,15 @@ class CtLiveTracker: ObservableObject {
         switch result {
         case let .success(pairing):
             redeemFailureCount = 0
+            // A check that comes back saying exactly what we already knew is
+            // not a change. Reporting it as one rebuilds the control
+            // connection and rewrites the settings for nothing, which is what
+            // opening the CTLive settings screen used to do mid race.
+            let wasPaired = paired
+            let previousToken = settings?.controlToken
+            let previousUrl = settings?.controlUrl
+            let previousOwner = settings?.ownerUsername
+            let previousInternalId = settings?.deviceInternalId
             paired = pairing.bound
             ownerUsername = pairing.ownerUsername
             settings?.ownerUsername = pairing.bound ? pairing.ownerUsername : ""
@@ -504,7 +513,14 @@ class CtLiveTracker: ObservableObject {
                 settings?.deviceInternalId = pairing.deviceInternalId
             }
             updateControlCredentials(pairing: pairing)
-            onPairingChanged?()
+            if wasPaired != paired
+                || previousToken != settings?.controlToken
+                || previousUrl != settings?.controlUrl
+                || previousOwner != settings?.ownerUsername
+                || previousInternalId != settings?.deviceInternalId
+            {
+                onPairingChanged?()
+            }
         case let .failure(error):
             pairingError = error.message
             guard isRedeem else {

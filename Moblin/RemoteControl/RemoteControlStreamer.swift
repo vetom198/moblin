@@ -46,12 +46,16 @@ protocol RemoteControlStreamerDelegate: AnyObject {
     func remoteControlStreamerSetFilter(filter: RemoteControlFilter, on: Bool)
     func remoteControlStreamerTriggerReaction(reaction: RemoteControlReaction)
     func remoteControlStreamerMoveToGimbalPreset(id: UUID)
+    // Both return the profile the phone is actually streaming to afterwards.
+    func remoteControlStreamerSetStreamProfiles(profiles: [RemoteControlStreamProfile]) -> String?
+    func remoteControlStreamerSetActiveStreamProfile(id: String) -> String?
 }
 
 // Close codes the server uses to say "do not come back with this". Reconnecting
 // cannot fix any of them, so the streamer stops instead of hot looping.
 let remoteControlCredentialRevokedCloseCode: UInt16 = 4001
 let remoteControlNotAuthorizedCloseCode: UInt16 = 4004
+private let pongDeadlineSeconds = 10.0
 private let remoteControlTerminalCloseCodes: Set<UInt16> = [
     remoteControlCredentialRevokedCloseCode,
     remoteControlNotAuthorizedCloseCode,
@@ -68,26 +72,43 @@ class RemoteControlStreamer {
     private let keepAliveTimer = SimpleTimer(queue: .main)
     private let pongDeadlineTimer = SimpleTimer(queue: .main)
     private var gotPong = true
+    // Only used to make the log say how long a connection lasted before it was
+    // torn down. Bringing up an assistant is a lot easier when the log
+    // distinguishes "died after 30 s" from "never got anywhere".
+    private var connectedAt: ContinuousClock.Instant?
     private let additionalHeaders: [(String, String)]
     private let onTerminalClose: ((UInt16) -> Void)?
+    private let reconnectDelaysMs: (shortest: Int, longest: Int)?
     @AppStorage("remoteControlStreamerId") var id = ""
 
     init(clientUrl: URL,
          password: String,
          delegate: any RemoteControlStreamerDelegate,
          additionalHeaders: [(String, String)] = [],
+         reconnectDelaysMs: (shortest: Int, longest: Int)? = nil,
          onTerminalClose: ((UInt16) -> Void)? = nil)
     {
         self.clientUrl = clientUrl
         self.password = password
         self.delegate = delegate
         self.additionalHeaders = additionalHeaders
+        self.reconnectDelaysMs = reconnectDelaysMs
         self.onTerminalClose = onTerminalClose
         encryption = RemoteControlEncryption(password: password)
         webSocket = .init(url: clientUrl, additionalHeaders: additionalHeaders)
         if id.isEmpty {
             id = UUID().uuidString
         }
+    }
+
+    private func makeWebSocket() -> WebSocketClient {
+        guard let reconnectDelaysMs else {
+            return .init(url: clientUrl, additionalHeaders: additionalHeaders)
+        }
+        return .init(url: clientUrl,
+                     additionalHeaders: additionalHeaders,
+                     shortestReconnectDelayMs: reconnectDelaysMs.shortest,
+                     longestReconnectDelayMs: reconnectDelaysMs.longest)
     }
 
     func start() {
@@ -103,7 +124,7 @@ class RemoteControlStreamer {
     private func startInternal() {
         stopInternal()
         gotPong = true
-        webSocket = .init(url: clientUrl, additionalHeaders: additionalHeaders)
+        webSocket = makeWebSocket()
         webSocket.delegate = self
         webSocket.start()
     }
@@ -116,6 +137,14 @@ class RemoteControlStreamer {
 
     func isConnected() -> Bool {
         connected
+    }
+
+    // Lets a caller keep a healthy connection instead of rebuilding an
+    // identical one. Everything that reloads the app's outgoing connections
+    // funnels through one place, so without this a stream switch or a pairing
+    // check drops the director.
+    func isConfigured(clientUrl: URL, password: String) -> Bool {
+        self.clientUrl == clientUrl && self.password == password
     }
 
     func stateChanged(state: RemoteControlAssistantStreamerState) {
@@ -173,13 +202,32 @@ class RemoteControlStreamer {
         // On a mobile network a half open connection can sit there for minutes
         // without an error, and the director would be controlling nothing. Give
         // the pong a hard deadline instead of waiting for the next ping.
-        pongDeadlineTimer.startSingleShot(timeout: 10) { [weak self] in
+        pongDeadlineTimer.startSingleShot(timeout: pongDeadlineSeconds) { [weak self] in
             guard let self, !gotPong else {
                 return
             }
-            logger.info("remote-control-streamer: Pong not received in time")
+            logger.info("""
+            remote-control-streamer: Nothing received in \(Int(pongDeadlineSeconds)) s after a ping, \
+            reconnecting \(elapsedSinceConnectText())
+            """)
             startInternal()
         }
+    }
+
+    // Any frame from the assistant proves the connection is alive, so treat it
+    // like a pong. The half open connection this deadline exists to catch
+    // delivers nothing at all, and an assistant that does not implement the
+    // application level ping/pong must not be mistaken for one.
+    private func noteAssistantIsAlive() {
+        gotPong = true
+        pongDeadlineTimer.stop()
+    }
+
+    private func elapsedSinceConnectText() -> String {
+        guard let connectedAt else {
+            return "(never connected)"
+        }
+        return "after \(connectedAt.duration(to: .now).components.seconds) s connected"
     }
 
     private func stopKeepAlive() {
@@ -209,8 +257,7 @@ class RemoteControlStreamer {
             case let .request(id: id, data: data):
                 handleRequest(id: id, data: data)
             case .pong:
-                gotPong = true
-                pongDeadlineTimer.stop()
+                noteAssistantIsAlive()
             }
         } catch {
             // Log the message itself. "Decode failed" on its own is useless when
@@ -235,6 +282,7 @@ class RemoteControlStreamer {
     private func handleIdentified(result: RemoteControlResult) -> Bool {
         switch result {
         case .ok:
+            logger.info("remote-control-streamer: Identified")
             connected = true
             delegate?.remoteControlStreamerConnected()
             return true
@@ -243,6 +291,10 @@ class RemoteControlStreamer {
         default:
             connectionErrorMessage = "Failed to identify"
         }
+        // Without this the streamer stays silent forever: periodic status is
+        // only sent once identified, so a rejected identify looks exactly like
+        // a connected but mute app from the assistant's side.
+        logger.info("remote-control-streamer: Not identified: \(connectionErrorMessage)")
         return false
     }
 
@@ -379,6 +431,12 @@ class RemoteControlStreamer {
             sendEmptyOkResponse(id: id)
         case .updateGolfScoreboard:
             sendEmptyOkResponse(id: id)
+        case let .setStreamProfiles(profiles: profiles):
+            let appliedId = delegate.remoteControlStreamerSetStreamProfiles(profiles: profiles)
+            send(message: .response(id: id, result: .ok, data: .setStreamProfiles(appliedId: appliedId)))
+        case let .setActiveStreamProfile(id: profileId):
+            let appliedId = delegate.remoteControlStreamerSetActiveStreamProfile(id: profileId)
+            send(message: .response(id: id, result: .ok, data: .setStreamProfiles(appliedId: appliedId)))
         }
     }
 
@@ -390,11 +448,13 @@ class RemoteControlStreamer {
 extension RemoteControlStreamer: WebSocketClientDelegate {
     func webSocketClientConnected(_: WebSocketClient) {
         logger.info("remote-control-streamer: Connected")
+        connectedAt = .now
         startKeepAlive()
     }
 
     func webSocketClientDisconnected(_: WebSocketClient) {
-        logger.info("remote-control-streamer: Disconnected")
+        logger.info("remote-control-streamer: Disconnected \(elapsedSinceConnectText())")
+        connectedAt = nil
         stopKeepAlive()
         if connected {
             delegate?.remoteControlStreamerDisconnected()
@@ -404,6 +464,7 @@ extension RemoteControlStreamer: WebSocketClientDelegate {
     }
 
     func webSocketClientReceiveMessage(_: WebSocketClient, string: String) {
+        noteAssistantIsAlive()
         try? handleMessage(message: string)
     }
 

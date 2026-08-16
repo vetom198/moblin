@@ -10,6 +10,32 @@ class RemoteControlStartStatusFilter: Codable {
     var topRight: Bool = true
 }
 
+// One push target configured on the CTLive dashboard. The point of these is
+// that the photographer never touches the phone: the director sets the ingest
+// up on the web and the phone follows.
+struct RemoteControlStreamProfile: Codable {
+    // Opaque to the app. The dashboard keys its own profiles on this and the
+    // app only ever compares it, so nothing here parses it as a UUID.
+    var id: String
+    var name: String
+    // rtmp, rtmps or srt.
+    var proto: String
+    var url: String
+    // Often empty for SRT, where the key tends to be carried inside the url.
+    var streamKey: String
+    var isActive: Bool
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        // protocol is a Swift keyword, the wire name is not.
+        case proto = "protocol"
+        case url
+        case streamKey
+        case isActive
+    }
+}
+
 enum RemoteControlRequest: Codable {
     case getStatus
     case getSettings
@@ -49,6 +75,8 @@ enum RemoteControlRequest: Codable {
     case moveToGimbalPreset(id: UUID)
     case getGolfScoreboard
     case updateGolfScoreboard(data: RemoteControlGolfScoreboard)
+    case setStreamProfiles(profiles: [RemoteControlStreamProfile])
+    case setActiveStreamProfile(id: String)
 }
 
 enum RemoteControlResponse: Codable {
@@ -61,6 +89,10 @@ enum RemoteControlResponse: Codable {
     case getScoreboardSports(names: [String])
     case whip(status: Int, headers: [SettingsHttpHeader], body: Data)
     case getGolfScoreboard(data: RemoteControlGolfScoreboard)
+    // Which profile the phone actually ended up on, so the dashboard can show
+    // the applied target instead of the requested one. Nil while a stream is
+    // running, where the list is stored but not switched to.
+    case setStreamProfiles(appliedId: String?)
 }
 
 enum RemoteControlEvent: Codable {

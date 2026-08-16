@@ -197,11 +197,18 @@ struct StreamSettingsView: View {
             Section {
                 NameEditView(name: $stream.name, existingNames: database.streams)
             }
-            Section("Destination") {
-                NavigationLink {
-                    StreamUrlSettingsView(stream: stream)
-                } label: {
+            Section {
+                if stream.isCtLiveManaged() {
+                    // The CTLive dashboard owns this destination. Editing it
+                    // here would be silently undone by the next profile push,
+                    // and the url carries the stream key.
                     TextItemLocalizedView(name: "URL", value: stream.url, sensitive: true)
+                } else {
+                    NavigationLink {
+                        StreamUrlSettingsView(stream: stream)
+                    } label: {
+                        TextItemLocalizedView(name: "URL", value: stream.url, sensitive: true)
+                    }
                 }
                 if database.showAllSettings {
                     switch stream.getProtocol() {
@@ -234,6 +241,12 @@ struct StreamSettingsView: View {
                             Text("WHIP")
                         }
                     }
+                }
+            } header: {
+                Text("Destination")
+            } footer: {
+                if stream.isCtLiveManaged() {
+                    Text("Managed by CTLive. Change it on the CTLive dashboard.")
                 }
             }
             Section("Media") {

@@ -21,7 +21,11 @@ private struct StreamItemView: View {
             }
         }
         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-            if !stream.enabled {
+            // A CTLive managed stream comes back on the next profile push, so
+            // deleting it here only looks like it worked. A duplicate is fine,
+            // clone() does not carry the marker and gives the operator a local
+            // copy to edit.
+            if !stream.enabled, !stream.isCtLiveManaged() {
                 SwipeLeftToDeleteButtonView {
                     database.streams.removeAll { $0 === stream }
                 }

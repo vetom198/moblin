@@ -4,6 +4,7 @@ import SwiftUI
 
 private let shortestDelayMs = 500
 private let longestDelayMs = 10000
+private let closeFrameGraceSeconds = 0.5
 
 protocol WebSocketClientDelegate: AnyObject {
     func webSocketClientConnected(_ webSocket: WebSocketClient)
@@ -31,7 +32,9 @@ final class WebSocketClient {
     private let url: URL
     private let loopback: Bool
     private var connected = false
-    private var connectDelayMs = shortestDelayMs
+    private var connectDelayMs: Int
+    private let shortestConnectDelayMs: Int
+    private let longestConnectDelayMs: Int
     private let protocols: [String]?
     private let additionalHeaders: [(String, String)]
 
@@ -39,12 +42,17 @@ final class WebSocketClient {
          loopback: Bool = false,
          cellular: Bool = true,
          protocols: [String]? = nil,
-         additionalHeaders: [(String, String)] = [])
+         additionalHeaders: [(String, String)] = [],
+         shortestReconnectDelayMs: Int = shortestDelayMs,
+         longestReconnectDelayMs: Int = longestDelayMs)
     {
         self.url = url
         self.loopback = loopback
         self.protocols = protocols
         self.additionalHeaders = additionalHeaders
+        shortestConnectDelayMs = shortestReconnectDelayMs
+        longestConnectDelayMs = longestReconnectDelayMs
+        connectDelayMs = shortestReconnectDelayMs
         networkInterfaceTypeSelector = NetworkInterfaceTypeSelector(queue: .main, cellular: cellular)
         webSocket = NWWebSocket(url: url, requiredInterfaceType: .cellular)
     }
@@ -89,14 +97,29 @@ final class WebSocketClient {
             webSocket.connect()
             startPingTimer()
         } else {
-            connectDelayMs = shortestDelayMs
+            connectDelayMs = shortestConnectDelayMs
             startConnectTimer()
         }
     }
 
     private func stopInternal() {
         connected = false
-        webSocket.disconnect()
+        let old = webSocket
+        // NWWebSocket reports the disconnection asynchronously. Left attached,
+        // that report lands after the replacement socket has been created and
+        // tears the new connection down as well, so every reconnect would kill
+        // itself.
+        old.delegate = nil
+        // A plain disconnect() cancels the connection without sending a close
+        // frame, which the server can only report as an abnormal close (1006).
+        // Say goodbye first so a deliberate teardown is distinguishable from a
+        // lost connection in the assistant's log.
+        old.disconnect(closeCode: .protocolCode(.goingAway))
+        // Sending the close frame does not tear the connection down, so cancel
+        // it once the frame has had time to leave.
+        DispatchQueue.main.asyncAfter(deadline: .now() + closeFrameGraceSeconds) {
+            old.disconnect()
+        }
         webSocket = .init(url: url, requiredInterfaceType: .cellular)
         stopConnectTimer()
         stopPingTimer()
@@ -107,12 +130,16 @@ final class WebSocketClient {
         // Jitter keeps several devices coming back from the same dead spot from
         // retrying in lockstep and hammering the link the moment it returns.
         let jitter = Double.random(in: 0.8 ... 1.2)
-        connectTimer.startSingleShot(timeout: jitter * Double(connectDelayMs) / 1000) { [weak self] in
+        let timeout = jitter * Double(connectDelayMs) / 1000
+        // A reconnect that never lands is invisible otherwise, and a gap in the
+        // log then looks the same as a suspended app.
+        logger.info("websocket: Reconnecting to \(url) in \(Int(timeout * 1000)) ms")
+        connectTimer.startSingleShot(timeout: timeout) { [weak self] in
             self?.startInternal()
         }
         connectDelayMs *= 2
-        if connectDelayMs > longestDelayMs {
-            connectDelayMs = longestDelayMs
+        if connectDelayMs > longestConnectDelayMs {
+            connectDelayMs = longestConnectDelayMs
         }
     }
 
@@ -144,7 +171,7 @@ final class WebSocketClient {
 extension WebSocketClient: WebSocketConnectionDelegate {
     func webSocketDidConnect(connection _: any WebSocketConnection) {
         logger.debug("websocket: Connected")
-        connectDelayMs = shortestDelayMs
+        connectDelayMs = shortestConnectDelayMs
         stopConnectTimer()
         connected = true
         delegate?.webSocketClientConnected(self)
@@ -154,7 +181,10 @@ extension WebSocketClient: WebSocketConnectionDelegate {
                                 closeCode: NWProtocolWebSocket.CloseCode, reason _: Data?)
     {
         let code = Self.closeCodeValue(closeCode)
-        logger.debug("websocket: Disconnected with close code \(code.map(String.init) ?? "-")")
+        // Info rather than debug. Why a control connection dropped in the field
+        // is not something anybody can go back and reproduce with debug logging
+        // turned on, and this only fires on a disconnect.
+        logger.info("websocket: Disconnected from \(url) with close code \(code.map(String.init) ?? "-")")
         stopInternal()
         if let code, delegate?.webSocketClientShouldReconnect(self, closeCode: code) == false {
             logger.info("websocket: Not reconnecting after close code \(code)")

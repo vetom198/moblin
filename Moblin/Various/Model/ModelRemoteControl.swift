@@ -60,6 +60,20 @@ extension Model {
     }
 
     func reloadRemoteControlStreamer() {
+        if let (url, password, _) = ctLiveRemoteControlConnection(),
+           let streamer = remoteControlStreamer,
+           streamer.isConnected(),
+           streamer.isConfigured(clientUrl: url, password: password)
+        {
+            // Switching stream, reloading chat and checking the pairing all
+            // reload every outgoing connection, and none of them changed where
+            // the director is. Rebuilding a live control connection for an
+            // unchanged configuration blinds the director for as long as the
+            // reconnect takes, right at the moment they acted. The watchdog
+            // still rebuilds a connection that is actually down, because that
+            // one is not connected.
+            return
+        }
         remoteControlStreamer?.stop()
         remoteControlStreamer = nil
         if let (url, password, headers) = ctLiveRemoteControlConnection() {
@@ -71,6 +85,10 @@ extension Model {
                 password: password,
                 delegate: self,
                 additionalHeaders: headers,
+                // A camera in the field drops off the network for minutes at a
+                // time. Retrying twice a second on a dead cell just burns
+                // battery, so start at 3 s and back off to 30 s.
+                reconnectDelaysMs: (shortest: 3000, longest: 30000),
                 onTerminalClose: { [weak self] closeCode in
                     self?.handleCtLiveControlClosed(closeCode: closeCode)
                 }
@@ -545,8 +563,16 @@ extension Model {
 
     func sendPeriodicRemoteControlStreamerStatus() {
         guard isRemoteControlStreamerConnected(), isRemoteControlAssistantRequestingStatus else {
+            remoteControlStatusSecondsSinceSent = 0
             return
         }
+        // Called once a second. Honour the interval the assistant asked for
+        // rather than reporting as fast as the timer runs.
+        remoteControlStatusSecondsSinceSent += 1
+        guard remoteControlStatusSecondsSinceSent >= remoteControlAssistantRequestingStatusInterval else {
+            return
+        }
+        remoteControlStatusSecondsSinceSent = 0
         let (general,
              topLeft,
              topRight) =
@@ -719,10 +745,19 @@ extension Model: RemoteControlStreamerDelegate {
         }
         makeToast(title: String(localized: "Remote control assistant connected"), subTitle: subTitle)
         isRemoteControlAssistantRequestingPreview = false
-        isRemoteControlAssistantRequestingStatus = false
+        // The CTLive backend decides whether a command would break a running
+        // stream by looking at the last reported isLive, and no status at all
+        // reads as not live. Start reporting immediately rather than waiting for
+        // startStatus to arrive, which also saves a round trip on every weak
+        // network reconnect.
+        isRemoteControlAssistantRequestingStatus = ctLiveIsRemoteControlActive()
+        remoteControlAssistantRequestingStatusFilter = nil
+        remoteControlAssistantRequestingStatusInterval = 1
+        remoteControlStatusSecondsSinceSent = 0
         setLowFpsImage()
         updateRemoteControlStatus()
         remoteControlStateChanged(state: createRemoteControlStateChanged())
+        sendPeriodicRemoteControlStreamerStatus()
     }
 
     func remoteControlStreamerDisconnected() {
@@ -939,14 +974,20 @@ extension Model: RemoteControlStreamerDelegate {
         remoteSceneData.location = nil
     }
 
-    func remoteControlStreamerStartStatus(interval _: Int, filter: RemoteControlStartStatusFilter?) {
+    func remoteControlStreamerStartStatus(interval: Int, filter: RemoteControlStartStatusFilter?) {
         isRemoteControlAssistantRequestingStatus = true
         remoteControlAssistantRequestingStatusFilter = filter
+        // A zero or negative interval would either report every tick or never
+        // report at all, and neither is what an assistant sending garbage
+        // meant. One second is the fastest the status timer runs anyway.
+        remoteControlAssistantRequestingStatusInterval = max(1, interval)
+        remoteControlStatusSecondsSinceSent = 0
     }
 
     func remoteControlStreamerStopStatus() {
         isRemoteControlAssistantRequestingStatus = false
         remoteControlAssistantRequestingStatusFilter = nil
+        remoteControlAssistantRequestingStatusInterval = 1
     }
 
     func remoteControlStreamerGetScoreboardSports() -> [String] {
@@ -1017,6 +1058,16 @@ extension Model: RemoteControlStreamerDelegate {
 
     func remoteControlStreamerMoveToGimbalPreset(id: UUID) {
         moveToGimbalPreset(id: id)
+    }
+
+    func remoteControlStreamerSetStreamProfiles(profiles: [RemoteControlStreamProfile]) -> String? {
+        ctLiveSetStreamProfiles(profiles: profiles)
+        return ctLiveAppliedStreamProfileId()
+    }
+
+    func remoteControlStreamerSetActiveStreamProfile(id: String) -> String? {
+        ctLiveSetActiveStreamProfile(id: id)
+        return ctLiveAppliedStreamProfileId()
     }
 }
 

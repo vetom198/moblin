@@ -1177,6 +1177,16 @@ class SettingsStream: Codable, Identifiable, Equatable, ObservableObject, Named 
     @Published var goLiveNotificationDiscordMessage: String = ""
     @Published var goLiveNotificationDiscordWebhookUrl: String = ""
     @Published var multiStreaming: SettingsStreamMultiStreaming = .init()
+    // Set on streams the CTLive dashboard owns. The director edits these on the
+    // web and the app mirrors them, so the operator must not be offered them as
+    // editable, and the url is deliberately not written to the settings file:
+    // it carries the stream key and the keychain is the store of record. See
+    // CtLiveStreamProfiles.
+    @Published var ctLiveProfileId: String?
+
+    func isCtLiveManaged() -> Bool {
+        ctLiveProfileId != nil
+    }
 
     static func == (lhs: SettingsStream, rhs: SettingsStream) -> Bool {
         lhs.id == rhs.id
@@ -1267,7 +1277,8 @@ class SettingsStream: Codable, Identifiable, Equatable, ObservableObject, Named 
              replay,
              goLiveNotificationDiscordMessage,
              goLiveNotificationDiscordWebhookUrl,
-             multiStreaming
+             multiStreaming,
+             ctLiveProfileId
     }
 
     func encode(to encoder: any Encoder) throws {
@@ -1275,7 +1286,11 @@ class SettingsStream: Codable, Identifiable, Equatable, ObservableObject, Named 
         try container.encode(.name, name)
         try container.encode(.id, id)
         try container.encode(.enabled, enabled)
-        try container.encode(.url, url)
+        try container.encode(.ctLiveProfileId, ctLiveProfileId)
+        // A CTLive managed url has the stream key in it and the keychain owns
+        // it. Writing it here as well would put a credential in the plain
+        // settings file for no gain, since it is restored on every launch.
+        try container.encode(.url, isCtLiveManaged() ? "" : url)
         try container.encode(.twitchChannelName, twitchChannelName)
         try container.encode(.twitchChannelId, twitchChannelId)
         try container.encode(.twitchShowFollows, twitchShowFollows)
@@ -1361,6 +1376,7 @@ class SettingsStream: Codable, Identifiable, Equatable, ObservableObject, Named 
         name = container.decode(.name, String.self, "My stream")
         id = container.decode(.id, UUID.self, .init())
         enabled = container.decode(.enabled, Bool.self, false)
+        ctLiveProfileId = container.decode(.ctLiveProfileId, String?.self, nil)
         url = container.decode(.url, String.self, defaultStreamUrl)
         twitchChannelName = container.decode(.twitchChannelName, String.self, "")
         twitchChannelId = container.decode(.twitchChannelId, String.self, "")

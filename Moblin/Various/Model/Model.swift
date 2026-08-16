@@ -579,6 +579,12 @@ final class Model: NSObject, ObservableObject, @unchecked Sendable {
     var isRemoteControlAssistantRequestingPreview = false
     var isRemoteControlAssistantRequestingStatus = false
     var remoteControlAssistantRequestingStatusFilter: RemoteControlStartStatusFilter?
+    // Seconds between periodic status reports, as asked for by startStatus.
+    // Building a full status formats a lot of strings, and the phone is on
+    // battery for the length of a race, so an assistant that only wants a
+    // report every few seconds should get what it asked for.
+    var remoteControlAssistantRequestingStatusInterval = 1
+    var remoteControlStatusSecondsSinceSent = 0
     var remoteControlAssistantPreviewUsers: Set<RemoteControlAssistantPreviewUser> = .init()
     var remoteControlAssistantStatusRequested: Bool = false
     var remoteControlStreamerLatestReceivedChatMessageId = -1
@@ -678,6 +684,10 @@ final class Model: NSObject, ObservableObject, @unchecked Sendable {
     let ctLive = CtLiveTracker()
     var ctLiveControlDisconnectedSince: ContinuousClock.Instant?
     var ctLiveControlRetryNotBefore: ContinuousClock.Instant?
+    // The stream profiles live in the keychain, which is unreadable between a
+    // reboot and the first unlock. A managed stream has no url until they have
+    // been read, so a failed read has to be retried rather than shrugged off.
+    var ctLiveStreamProfilesLoaded = false
     var supportsAppleLog: Bool = false
     let weatherManager = WeatherManager()
     let geographyManager = GeographyManager()
@@ -699,6 +709,9 @@ final class Model: NSObject, ObservableObject, @unchecked Sendable {
         settings.load()
         streamingHistory.load()
         replaysStorage.load()
+        // Before the current stream is picked: a CTLive managed stream has no
+        // url until its profile has been read back from the keychain.
+        ctLiveLoadStreamProfiles()
         setCurrentStream()
         updateIsPortrait()
         if orientation.isPortrait {
@@ -1211,6 +1224,8 @@ final class Model: NSObject, ObservableObject, @unchecked Sendable {
         isAppActive = notification.name == UIApplication.didBecomeActiveNotification
         if isAppActive {
             triggerAtemAutoSync(reason: "app-active")
+            // The keychain is readable now if it was not at launch.
+            ctLiveRetryLoadStreamProfilesIfNeeded()
         }
     }
 
