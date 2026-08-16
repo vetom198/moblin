@@ -174,6 +174,12 @@ private struct CompactDrawerButton: View {
                     .font(.system(size: 9))
                     .foregroundStyle(.white)
             }
+            // The drawn circle is the smallest thing Apple considers tappable,
+            // and it sits against the edge of the screen where a thumb is least
+            // accurate. Take the whole width of the bar as the target without
+            // changing what is drawn.
+            .frame(maxWidth: .infinity)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
@@ -298,17 +304,20 @@ struct ControlBarLandscapeView: View {
                     Spacer(minLength: 0)
                 }
                 StatusView(model: model, status: model.statusOther)
-                    .frame(width: controlBarWidthDefault)
+                    .frame(width: controlBarWidth(quickButtons: quickButtons))
                 Spacer(minLength: 0)
             }
             MainPageView(model: model,
                          quickButtons: model.quickButtons,
                          quickButtonsSettings: quickButtons,
                          store: model.store,
-                         width: controlBarWidthDefault)
+                         width: controlBarWidth(quickButtons: quickButtons))
         }
         .padding(.vertical, 0)
-        .frame(width: controlBarWidthDefault)
+        // Must be the same width the parent reserves for it. Wider and the bar
+        // draws outside its parent's bounds, where SwiftUI delivers no touches:
+        // the buttons are visible and dead.
+        .frame(width: controlBarWidth(quickButtons: quickButtons))
         .background(.black)
         .ignoresSafeArea(.all, edges: edgesToIgnore())
     }

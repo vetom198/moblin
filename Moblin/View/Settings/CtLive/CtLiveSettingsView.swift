@@ -4,6 +4,9 @@ private struct PairingView: View {
     @ObservedObject var ctLive: SettingsCtLive
     @ObservedObject var tracker: CtLiveTracker
     @State private var code = ""
+    // The number pad has no return key, so without somewhere to send focus the
+    // keyboard covers half the screen with no way to put it away.
+    @FocusState private var codeFocused: Bool
 
     private func canRedeem() -> Bool {
         code.count == 6 && !tracker.pairingBusy && tracker.pairingLockedUntil == nil
@@ -23,11 +26,21 @@ private struct PairingView: View {
                 TextField("123456", text: $code)
                     .keyboardType(.numberPad)
                     .multilineTextAlignment(.trailing)
+                    .focused($codeFocused)
                     .onChange(of: code) { _ in
                         code = String(code.filter(\.isNumber).prefix(6))
                     }
+                    .toolbar {
+                        ToolbarItemGroup(placement: .keyboard) {
+                            Spacer()
+                            Button(String(localized: "Done")) {
+                                codeFocused = false
+                            }
+                        }
+                    }
             }
             TextButtonView("Pair") {
+                codeFocused = false
                 tracker.redeemPairingCode(code: code)
                 code = ""
             }
@@ -198,6 +211,9 @@ struct CtLiveSettingsView: View {
                 }
             }
         }
+        // Swiping the list also puts the number pad away, which is what most
+        // people try first.
+        .scrollDismissesKeyboard(.interactively)
         .navigationTitle("CTLive")
     }
 }

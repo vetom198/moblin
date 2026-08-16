@@ -153,6 +153,12 @@ private struct CompactDrawerButton: View {
                     .font(.system(size: 9))
                     .foregroundStyle(.white)
             }
+            // The drawn circle is the smallest thing Apple considers tappable,
+            // and it sits against the edge of the screen where a thumb is least
+            // accurate. Take the whole width of the bar as the target without
+            // changing what is drawn.
+            .frame(maxWidth: .infinity)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
