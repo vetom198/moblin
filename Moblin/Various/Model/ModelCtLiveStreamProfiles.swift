@@ -136,7 +136,18 @@ extension Model {
     // "streaming to none of the managed profiles" from "the phone has not
     // answered yet", which is the absent response.
     func ctLiveAppliedStreamProfileId() -> String {
-        stream.ctLiveProfileId ?? ""
+        guard let profileId = stream.ctLiveProfileId else {
+            return ""
+        }
+        // A managed stream with no url is one whose profile could not be read
+        // back from the keychain. Claiming the profile is applied would tell
+        // the dashboard everything is fine while the phone cannot push
+        // anywhere, and that is precisely the failure worth surfacing.
+        guard !stream.url.isEmpty else {
+            logger.info("ct-live: Profile \(profileId) has no url, reporting nothing applied")
+            return ""
+        }
+        return profileId
     }
 
     private func activeCtLiveProfileName() -> String {
