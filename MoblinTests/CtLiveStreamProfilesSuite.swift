@@ -62,7 +62,11 @@ struct CtLiveStreamProfilesSuite {
     // only true as long as the scheme survives assembly untouched.
     @Test
     func srtlaKeepsItsSchemeAndTakesAStreamId() {
-        let profile = makeProfile(proto: "srtla", url: "srtla://live.ctyeh.com:5000", streamKey: "publish:bike1")
+        let profile = makeProfile(
+            proto: "srtla",
+            url: "srtla://live.ctyeh.com:5000",
+            streamKey: "publish:bike1"
+        )
         #expect(profile.isSupportedProtocol())
         #expect(profile.toMoblinUrl() == "srtla://live.ctyeh.com:5000?streamid=publish:bike1")
     }

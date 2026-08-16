@@ -33,14 +33,6 @@ struct SettingsView: View {
                     Label("Scenes", systemImage: "photo.on.rectangle")
                 }
                 NavigationLink {
-                    ChatSettingsView(model: model,
-                                     database: database,
-                                     chat: database.chat,
-                                     stream: model.stream)
-                } label: {
-                    Label("Chat", systemImage: "message")
-                }
-                NavigationLink {
                     DisplaySettingsView(database: database)
                 } label: {
                     Label("Display", systemImage: "rectangle.inset.topright.fill")
@@ -59,11 +51,6 @@ struct SettingsView: View {
                                           audio: database.audio)
                     } label: {
                         Label("Audio", systemImage: "waveform")
-                    }
-                    NavigationLink {
-                        MacrosSettingsView(model: model, database: database, macros: database.macros)
-                    } label: {
-                        Label("Macros", systemImage: "increase.indent")
                     }
                 }
                 NavigationLink {
@@ -87,13 +74,6 @@ struct SettingsView: View {
                         IngestsSettingsView(model: model, database: database)
                     } label: {
                         Label("Ingests", systemImage: "server.rack")
-                    }
-                    NavigationLink {
-                        TalkbackSettingsView(model: model,
-                                             mics: database.mics,
-                                             talkback: database.talkback)
-                    } label: {
-                        Label("Talkback", systemImage: "speaker.wave.2.bubble.left")
                     }
                 }
                 NavigationLink {
@@ -121,23 +101,12 @@ struct SettingsView: View {
                     } label: {
                         Label("Selfie stick", systemImage: "line.diagonal")
                     }
-                    NavigationLink {
-                        GameControllersSettingsView(model: model, database: database)
-                    } label: {
-                        Label("Game controllers", systemImage: "gamecontroller")
-                    }
-                    if #available(iOS 17.0, *) {
-                        NavigationLink {
-                            KeyboardSettingsView(model: model, keyboard: database.keyboard)
-                        } label: {
-                            Label("Keyboard", systemImage: "keyboard")
-                        }
-                    }
-                    NavigationLink {
-                        RemoteControlSettingsView(database: database, stream: $model.stream)
-                    } label: {
-                        Label("Remote control", systemImage: "appletvremote.gen1")
-                    }
+                    // Chat, macros, talkback, game controllers, keyboard and
+                    // Moblin's own remote control are hidden along with the
+                    // gadget integrations. The director drives this phone from
+                    // the CTLive dashboard, which is configured under
+                    // Settings -> CTLive, not here, so this screen was only a
+                    // way to break the connection by accident.
                 }
                 Section {
                     NavigationLink {
