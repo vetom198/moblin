@@ -150,27 +150,12 @@ struct SettingsView: View {
                     } label: {
                         Label("GoPro", systemImage: "appletvremote.gen1")
                     }
-                    NavigationLink {
-                        CatPrintersSettingsView(catPrinters: database.catPrinters)
-                    } label: {
-                        Label("Cat printers", systemImage: "pawprint")
-                    }
-                    NavigationLink {
-                        TeslaSettingsView(tesla: model.tesla)
-                    } label: {
-                        Label("Tesla", systemImage: "car.side")
-                    }
-                    NavigationLink {
-                        WorkoutDevicesSettingsView(workoutDevices: database.workoutDevices)
-                    } label: {
-                        Label("Workout devices", systemImage: "figure.walk.motion")
-                    }
-                    NavigationLink {
-                        BlackSharkCoolerDevicesSettingsView(blackSharkCoolerDevices: database
-                            .blackSharkCoolerDevices)
-                    } label: {
-                        Label("Black Shark coolers", systemImage: "fan")
-                    }
+                    // Cat printers, Tesla, workout devices and Black Shark
+                    // coolers are hidden. None of them have a place in a race
+                    // broadcast, and the settings list is what an operator has
+                    // to get through while holding a camera. The screens and
+                    // their model code are left in place, only the way in is
+                    // gone, so a rebase onto upstream stays cheap.
                 }
             }
             Section {

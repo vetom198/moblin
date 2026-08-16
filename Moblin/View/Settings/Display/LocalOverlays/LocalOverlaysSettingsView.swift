@@ -113,16 +113,10 @@ struct LocalOverlaysSettingsView: View {
                 } icon: {
                     Image(systemName: "phone.connection")
                 }
-                Label {
-                    Toggle("Cat printers", isOn: $show.catPrinter)
-                } icon: {
-                    Image(systemName: "pawprint")
-                }
-                Label {
-                    Toggle("Workout devices", isOn: $show.workoutDevice)
-                } icon: {
-                    Image(systemName: "figure.walk.motion")
-                }
+                // The cat printer and workout device status toggles go with
+                // their settings screens. Offering to show the status of a
+                // device that can no longer be paired only puzzles the
+                // operator.
             }
             Section {
                 Label {

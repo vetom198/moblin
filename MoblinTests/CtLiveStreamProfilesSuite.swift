@@ -56,6 +56,28 @@ struct CtLiveStreamProfilesSuite {
         #expect(profile.toMoblinUrl() == "srt://relay.ctyeh.com:8890?streamid=inUrl")
     }
 
+    // Moblin tells srtla from srt by the url scheme alone, and carries the
+    // streamid in the query exactly as it does for srt. Bonding then turns
+    // itself on. So an srtla profile needs no special handling here, which is
+    // only true as long as the scheme survives assembly untouched.
+    @Test
+    func srtlaKeepsItsSchemeAndTakesAStreamId() {
+        let profile = makeProfile(proto: "srtla", url: "srtla://live.ctyeh.com:5000", streamKey: "publish:bike1")
+        #expect(profile.isSupportedProtocol())
+        #expect(profile.toMoblinUrl() == "srtla://live.ctyeh.com:5000?streamid=publish:bike1")
+    }
+
+    // The stream key the dashboard sends for a camera contains a colon. It is
+    // legal in a query value and must not be escaped or split.
+    @Test
+    func aColonInTheStreamKeySurvives() throws {
+        let profile = makeProfile(proto: "srt", url: "srt://live.ctyeh.com:8890", streamKey: "publish:bike1")
+        let url = try #require(profile.toMoblinUrl())
+        #expect(url.hasSuffix("?streamid=publish:bike1"))
+        // The same parse Moblin uses to lift the streamid into the SRT handshake.
+        #expect(URL(string: url)?.dictionaryFromQuery()["streamid"] == "publish:bike1")
+    }
+
     @Test
     func aProfileWithoutAUrlIsUnusable() {
         let profile = makeProfile(proto: "rtmp", url: "   ", streamKey: "key")
