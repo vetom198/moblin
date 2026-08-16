@@ -781,3 +781,10 @@ extension KeyedDecodingContainer {
         (try? decode(type, forKey: key)) ?? defaultValue
     }
 }
+
+// The upstream Moblin release this fork was built from. Recorded at build time
+// from MOBLIN_UPSTREAM_VERSION so the running app can answer it, rather than
+// somebody having to guess from the git history.
+func upstreamMoblinVersion() -> String {
+    Bundle.main.infoDictionary?["MoblinUpstreamVersion"] as? String ?? "-"
+}
