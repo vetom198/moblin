@@ -1,6 +1,10 @@
 import SwiftUI
 import WidgetKit
 
+// Dimmed rather than hidden: the icon still has to be recognisable in the
+// Dynamic Island, it just must not look authoritative.
+private let staleOpacity = 0.4
+
 private struct MoblinLiveActivityIcon: View {
     var body: some View {
         Image("AppIcon")
@@ -50,29 +54,42 @@ struct MoblinLiveActivityApp: Widget {
                 HStack {
                     MoblinLiveActivityIcon()
                         .frame(width: 40, height: 40)
-                    Text("Moblin is running in background")
+                        .opacity(context.isStale ? staleOpacity : 1)
+                    // Swiping the app away leaves this activity behind with no
+                    // way to update or end it, so once the content has gone
+                    // stale it must stop claiming the app is running. Saying
+                    // "Live" next to a dead app is worse than saying nothing.
+                    Text(context.isStale ? "Moblin may have stopped" : "Moblin is running in background")
                         .lineLimit(1)
                         .font(.headline)
                         .foregroundColor(.white)
                 }
                 Divider()
-                MoblinLiveActivityStatusLabel(state: context.state)
-                    .padding(.leading, 10)
+                if context.isStale {
+                    IconAndTextView(image: "questionmark.circle", text: String(localized: "Status unknown"))
+                        .padding(.leading, 10)
+                } else {
+                    MoblinLiveActivityStatusLabel(state: context.state)
+                        .padding(.leading, 10)
+                }
             }
             .padding()
             .activityBackgroundTint(Color.black.opacity(0.8))
-        } dynamicIsland: { _ in
+        } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
                     MoblinLiveActivityIcon()
                         .frame(width: 36, height: 36)
+                        .opacity(context.isStale ? staleOpacity : 1)
                 }
             } compactLeading: {
                 MoblinLiveActivityIcon()
+                    .opacity(context.isStale ? staleOpacity : 1)
             } compactTrailing: {
                 EmptyView()
             } minimal: {
                 MoblinLiveActivityIcon()
+                    .opacity(context.isStale ? staleOpacity : 1)
             }
         }
     }

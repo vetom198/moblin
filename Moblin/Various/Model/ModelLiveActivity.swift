@@ -2,6 +2,14 @@ import ActivityKit
 import Foundation
 
 private let liveActivityEndTimeoutSeconds = 2.0
+// How long the content stays trustworthy without a refresh. Clearing orphans at
+// launch is not enough on its own: swiping the app away leaves an activity that
+// nothing will clear until the next launch, and until then it keeps asserting
+// whatever was true when the process died. A stale date is what iOS provides for
+// exactly this, so the widget can say it no longer knows instead of saying
+// "Live". Generous, because a wrong "unknown" is a far cheaper mistake than a
+// wrong "Live".
+private let liveActivityStaleAfterSeconds = 300.0
 
 #if !targetEnvironment(macCatalyst)
 
@@ -38,7 +46,7 @@ extension Model {
         endStaleLiveActivities()
         liveActivity = try? Activity.request(
             attributes: LiveActivityAttributes(),
-            content: .init(state: makeState(), staleDate: nil)
+            content: .init(state: makeState(), staleDate: .now + liveActivityStaleAfterSeconds)
         )
     }
 
@@ -63,7 +71,7 @@ extension Model {
     func updateLiveActivity() {
         let state = makeState()
         Task {
-            await liveActivity?.update(.init(state: state, staleDate: nil))
+            await liveActivity?.update(.init(state: state, staleDate: .now + liveActivityStaleAfterSeconds))
         }
     }
 

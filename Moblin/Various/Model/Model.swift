@@ -1776,6 +1776,10 @@ final class Model: NSObject, ObservableObject, @unchecked Sendable {
     private func handle30sTimer() {
         updateDjiDevicesStatus()
         updateBatteryLevel()
+        // Pushes the stale date forward while the app is alive. Without a
+        // refresh the activity would declare itself stale five minutes into a
+        // perfectly healthy background stream.
+        updateLiveActivity()
     }
 
     func stopPeriodicTimers(keepChatRunning: Bool,
