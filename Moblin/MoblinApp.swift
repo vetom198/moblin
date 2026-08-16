@@ -125,6 +125,9 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         // A launch straight into the background is iOS restarting the app after
         // it was terminated, and no scene appears, so nothing else brings the
         // CTLive control connection back. See ctLiveResumeAfterBackgroundLaunch.
+        // Before anything else: a Live Activity left over from a process that no
+        // longer exists keeps telling the operator the stream is up.
+        MoblinApp.globalModel?.endStaleLiveActivities()
         if application.applicationState == .background {
             guard let model = MoblinApp.globalModel else {
                 // Would mean the model is built after this point, in which case

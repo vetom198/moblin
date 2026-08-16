@@ -1,9 +1,31 @@
 import ActivityKit
 import Foundation
 
+private let liveActivityEndTimeoutSeconds = 2.0
+
 #if !targetEnvironment(macCatalyst)
 
 extension Model {
+    // Anything still showing at launch belongs to a process that is gone, so it
+    // is stale by definition. Two reasons this has to happen here rather than
+    // relying on the teardown paths:
+    //
+    // - willTerminate is not delivered when the user swipes away an app that is
+    //   already suspended, so the activity outlives the app and keeps claiming
+    //   "Live" in the Dynamic Island for hours. An operator glancing at the
+    //   phone would believe the broadcast is up when nothing is running.
+    // - startLiveActivity only guards against a duplicate through liveActivity,
+    //   which is per process. A relaunch has a nil one and happily requests a
+    //   second activity next to the orphan, which is why two extension
+    //   processes were seen at once.
+    func endStaleLiveActivities() {
+        Task {
+            for activity in Activity<LiveActivityAttributes>.activities {
+                await activity.end(nil, dismissalPolicy: .immediate)
+            }
+        }
+    }
+
     func startLiveActivity() {
         guard ActivityAuthorizationInfo().areActivitiesEnabled else {
             return
@@ -11,6 +33,9 @@ extension Model {
         guard liveActivity == nil else {
             return
         }
+        // An orphan from a previous process would otherwise sit alongside this
+        // one, showing whatever was true when that process died.
+        endStaleLiveActivities()
         liveActivity = try? Activity.request(
             attributes: LiveActivityAttributes(),
             content: .init(state: makeState(), staleDate: nil)
@@ -27,7 +52,11 @@ extension Model {
                 semaphore.signal()
             }
         }
-        semaphore.wait()
+        // Bounded. This runs on the main thread on every return to the
+        // foreground and on the way out, and an unbounded wait on ActivityKit
+        // would hang the app rather than lose an activity that iOS cleans up
+        // anyway.
+        _ = semaphore.wait(timeout: .now() + liveActivityEndTimeoutSeconds)
         liveActivity = nil
     }
 
@@ -74,6 +103,8 @@ extension Model {
 #else
 
 extension Model {
+    func endStaleLiveActivities() {}
+
     func startLiveActivity() {}
 
     func stopLiveActivity() {}
