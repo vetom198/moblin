@@ -1,7 +1,39 @@
 import Foundation
 
 extension Model {
+    // iOS terminates a long running camera app under memory pressure and then
+    // relaunches it in the background through the location background mode. No
+    // scene appears in that case, so MainView's onAppear never fires and
+    // Model.setup() never runs: the process is alive but the control
+    // connection is never built and the location updates that keep the app
+    // running are never restarted. From the director's side the camera is
+    // simply gone, with no way back until somebody physically opens the app.
+    //
+    // Bring up only the two things that matter here. The camera and the media
+    // pipeline are deliberately left alone, they belong to setup() and have no
+    // business starting in the background.
+    //
+    // UNVERIFIED: written from the observed symptom (process relaunched by iOS,
+    // no handshake for minutes) and from the fact that setup() is reachable
+    // only through onAppear. Needs a real background relaunch to confirm, both
+    // that this runs at all and that globalModel exists this early.
+    func ctLiveResumeAfterBackgroundLaunch() {
+        guard ctLiveIsRemoteControlActive() else {
+            return
+        }
+        logger.info("ct-live: Background relaunch, restoring the control connection")
+        setupCtLive()
+        reloadRemoteControlStreamer()
+        reloadLocation()
+    }
+
     func setupCtLive() {
+        // Both the background relaunch path and setup() call this, and the
+        // tracker restores a running race session, which must not happen twice.
+        guard !isCtLiveSetup else {
+            return
+        }
+        isCtLiveSetup = true
         ctLive.onPairingChanged = { [weak self] in
             // A fresh pairing hands us new control credentials, and losing the
             // binding takes them away. Either way the control connection has to

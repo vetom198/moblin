@@ -119,10 +119,23 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     }
 
     func application(
-        _: UIApplication,
+        _ application: UIApplication,
         didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
-        true
+        // A launch straight into the background is iOS restarting the app after
+        // it was terminated, and no scene appears, so nothing else brings the
+        // CTLive control connection back. See ctLiveResumeAfterBackgroundLaunch.
+        if application.applicationState == .background {
+            guard let model = MoblinApp.globalModel else {
+                // Would mean the model is built after this point, in which case
+                // the recovery needs to hang off something later. Say so rather
+                // than fail quietly.
+                logger.info("ct-live: Background launch with no model yet, cannot restore control")
+                return true
+            }
+            model.ctLiveResumeAfterBackgroundLaunch()
+        }
+        return true
     }
 
     func application(_: UIApplication,

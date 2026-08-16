@@ -688,6 +688,7 @@ final class Model: NSObject, ObservableObject, @unchecked Sendable {
     // reboot and the first unlock. A managed stream has no url until they have
     // been read, so a failed read has to be retried rather than shrugged off.
     var ctLiveStreamProfilesLoaded = false
+    var isCtLiveSetup = false
     var supportsAppleLog: Bool = false
     let weatherManager = WeatherManager()
     let geographyManager = GeographyManager()
