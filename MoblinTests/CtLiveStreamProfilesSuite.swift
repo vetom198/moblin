@@ -2,13 +2,18 @@ import Foundation
 @testable import Moblin
 import Testing
 
-private func makeProfile(proto: String, url: String, streamKey: String) -> RemoteControlStreamProfile {
+private func makeProfile(proto: String,
+                         url: String,
+                         streamKey: String,
+                         videoCodec: String? = nil) -> RemoteControlStreamProfile
+{
     RemoteControlStreamProfile(id: "p1",
                                name: "Profile",
                                proto: proto,
                                url: url,
                                streamKey: streamKey,
-                               isActive: true)
+                               isActive: true,
+                               videoCodec: videoCodec)
 }
 
 struct CtLiveStreamProfilesSuite {
@@ -80,6 +85,38 @@ struct CtLiveStreamProfilesSuite {
         #expect(url.hasSuffix("?streamid=publish:bike1"))
         // The same parse Moblin uses to lift the streamid into the SRT handshake.
         #expect(URL(string: url)?.dictionaryFromQuery()["streamid"] == "publish:bike1")
+    }
+
+    // The dashboard switches the codec because its own preview cannot play
+    // H.265 outside Safari. An absent value must leave the encoder alone
+    // rather than quietly resetting it to a default.
+    @Test
+    func theCodecIsOnlyOverriddenWhenAskedFor() {
+        #expect(makeProfile(proto: "srt", url: "u", streamKey: "").toCodec() == nil)
+        #expect(makeProfile(proto: "srt", url: "u", streamKey: "", videoCodec: "h264").toCodec() == .h264avc)
+        #expect(makeProfile(proto: "srt", url: "u", streamKey: "", videoCodec: "H.264").toCodec() == .h264avc)
+        #expect(makeProfile(proto: "srt", url: "u", streamKey: "", videoCodec: "avc").toCodec() == .h264avc)
+        #expect(makeProfile(proto: "srt", url: "u", streamKey: "", videoCodec: "h265").toCodec() == .h265hevc)
+        #expect(makeProfile(proto: "srt", url: "u", streamKey: "", videoCodec: "HEVC").toCodec() == .h265hevc)
+        // Anything unrecognised is left alone rather than guessed at.
+        #expect(makeProfile(proto: "srt", url: "u", streamKey: "", videoCodec: "av1").toCodec() == nil)
+    }
+
+    // A dashboard that predates the field must keep decoding.
+    @Test
+    func aProfileWithoutTheCodecFieldStillDecodes() throws {
+        let json = """
+        {"setStreamProfiles":{"profiles":[\
+        {"id":"uuid-1","name":"Main","protocol":"srtla","url":"srtla://a:5000",\
+        "streamKey":"publish:bike1","isActive":true}]}}
+        """
+        let request = try JSONDecoder().decode(RemoteControlRequest.self, from: Data(json.utf8))
+        guard case let .setStreamProfiles(profiles: profiles) = request else {
+            Issue.record("Decoded to the wrong case")
+            return
+        }
+        #expect(profiles[0].videoCodec == nil)
+        #expect(profiles[0].toCodec() == nil)
     }
 
     @Test

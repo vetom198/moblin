@@ -24,6 +24,10 @@ struct RemoteControlStreamProfile: Codable {
     // Often empty for SRT, where the key tends to be carried inside the url.
     var streamKey: String
     var isActive: Bool
+    // h264 or h265. Absent means leave the encoder alone, which is what a
+    // dashboard that does not know about this field wants. The dashboard cares
+    // because its own preview cannot play H.265 outside Safari.
+    var videoCodec: String?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -33,6 +37,18 @@ struct RemoteControlStreamProfile: Codable {
         case url
         case streamKey
         case isActive
+        case videoCodec
+    }
+
+    func toCodec() -> SettingsStreamCodec? {
+        switch videoCodec?.lowercased().replacing(".", with: "") {
+        case "h264", "h264avc", "avc":
+            .h264avc
+        case "h265", "h265hevc", "hevc":
+            .h265hevc
+        default:
+            nil
+        }
     }
 }
 

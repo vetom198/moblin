@@ -220,6 +220,13 @@ extension Model {
                     existing.url = url
                     changed.insert(profile.id)
                 }
+                // A codec change needs the encoder rebuilt just as a url change
+                // does, so it has to count as changed or the switch would be
+                // stored and never applied.
+                if let codec = profile.toCodec(), existing.codec != codec {
+                    existing.codec = codec
+                    changed.insert(profile.id)
+                }
             } else {
                 changed.insert(profile.id)
                 let new = SettingsStream(name: profile.name)
@@ -231,7 +238,9 @@ extension Model {
                 new.resolution = stream.resolution
                 new.fps = stream.fps
                 new.bitrate = stream.bitrate
-                new.codec = stream.codec
+                // The dashboard only overrides the codec when it has a reason
+                // to, so an absent value keeps the operator's own choice.
+                new.codec = profile.toCodec() ?? stream.codec
                 new.audioBitrate = stream.audioBitrate
                 new.adaptiveBitrate = stream.adaptiveBitrate
                 new.portrait = stream.portrait
