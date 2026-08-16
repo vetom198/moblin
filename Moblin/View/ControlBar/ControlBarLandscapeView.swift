@@ -10,9 +10,16 @@ private func edgesToIgnore() -> Edge.Set {
 
 func controlBarWidth(quickButtons _: SettingsQuickButtons) -> Double {
     // The big buttons and two columns settings sized the full quick button
-    // list, which this build no longer shows. The compact drawer is a single
-    // column either way, so the width no longer depends on them.
-    controlBarWidthCompact
+    // list, which this build no longer shows, so the width no longer depends on
+    // them.
+    //
+    // Narrowing this was tried and reverted. The bar ignores the trailing safe
+    // area, and at a smaller width the drawn content ended up to the right of
+    // the frame the layout system hit-tests, so the buttons had to be tapped
+    // from the black strip beside them. Ten points of preview is not worth a
+    // control bar an operator cannot hit; anyone retrying this needs to solve
+    // the safe area interaction first.
+    controlBarWidthDefault
 }
 
 private struct QuickButtonsView: View {
@@ -132,7 +139,7 @@ private struct IconAndSettingsView: View {
     @ObservedObject var store: Store
 
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 8) {
             Button {
                 model.toggleShowingPanel(type: nil, panel: .settings)
             } label: {
@@ -185,6 +192,48 @@ private struct CompactDrawerButton: View {
     }
 }
 
+// The Record entry beside this one opens the list of recordings, which is not
+// the same thing as starting one. With the full quick button list hidden there
+// was nowhere left to actually begin or end a recording, so this is that
+// control: state visible at a glance, because an operator has to be able to
+// tell from across a bike whether the camera is rolling.
+private struct CompactDrawerRecordButton: View {
+    @ObservedObject var model: Model
+    @State private var presentingConfirm = false
+
+    private func toggle() {
+        model.toggleRecording()
+    }
+
+    var body: some View {
+        Button {
+            if model.database.startStopRecordingConfirmations {
+                presentingConfirm = true
+            } else {
+                toggle()
+            }
+        } label: {
+            VStack(spacing: 2) {
+                Image(systemName: model.isRecording ? "record.circle.fill" : "record.circle")
+                    .frame(width: controlBarButtonSize, height: controlBarButtonSize)
+                    .overlay(Circle().stroke(.secondary))
+                    .foregroundStyle(model.isRecording ? .red : .white)
+                Text(model.isRecording ? String(localized: "Recording") : String(localized: "Record"))
+                    .font(.system(size: 9))
+                    .foregroundStyle(model.isRecording ? .red : .white)
+            }
+            .frame(maxWidth: .infinity)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .confirmationDialog("", isPresented: $presentingConfirm) {
+            Button(model.isRecording ? "Stop recording" : "Start recording") {
+                toggle()
+            }
+        }
+    }
+}
+
 private struct CompactDrawerView: View {
     let model: Model
 
@@ -197,12 +246,7 @@ private struct CompactDrawerView: View {
                 label: String(localized: "Bitrate")
             )
             CompactDrawerButton(model: model, panel: .mic, icon: "mic", label: String(localized: "Mic"))
-            CompactDrawerButton(
-                model: model,
-                panel: .recordings,
-                icon: "record.circle",
-                label: String(localized: "Record")
-            )
+            CompactDrawerRecordButton(model: model)
             CompactDrawerButton(model: model, panel: .ctLive, icon: "flag.checkered", label: "CTLive")
         }
         .padding(.top, 10)
@@ -238,7 +282,7 @@ private struct MainPageView: View {
     let width: Double
 
     private func buttonsWidth() -> Double {
-        width - 4
+        width - 10
     }
 
     var body: some View {
@@ -318,7 +362,12 @@ struct ControlBarLandscapeView: View {
         // draws outside its parent's bounds, where SwiftUI delivers no touches:
         // the buttons are visible and dead.
         .frame(width: controlBarWidth(quickButtons: quickButtons))
-        .background(.black)
-        .ignoresSafeArea(.all, edges: edgesToIgnore())
+        // Only the black fill reaches into the safe area. Letting the bar
+        // itself ignore it expands the whole view, which slides the buttons
+        // towards the screen edge while the region the layout hit-tests stays
+        // put, so they had to be tapped from the black strip to their left.
+        .background {
+            Color.black.ignoresSafeArea(.all, edges: edgesToIgnore())
+        }
     }
 }

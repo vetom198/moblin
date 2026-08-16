@@ -164,6 +164,48 @@ private struct CompactDrawerButton: View {
     }
 }
 
+// The Record entry beside this one opens the list of recordings, which is not
+// the same thing as starting one. With the full quick button list hidden there
+// was nowhere left to actually begin or end a recording, so this is that
+// control: state visible at a glance, because an operator has to be able to
+// tell from across a bike whether the camera is rolling.
+private struct CompactDrawerRecordButton: View {
+    @ObservedObject var model: Model
+    @State private var presentingConfirm = false
+
+    private func toggle() {
+        model.toggleRecording()
+    }
+
+    var body: some View {
+        Button {
+            if model.database.startStopRecordingConfirmations {
+                presentingConfirm = true
+            } else {
+                toggle()
+            }
+        } label: {
+            VStack(spacing: 2) {
+                Image(systemName: model.isRecording ? "record.circle.fill" : "record.circle")
+                    .frame(width: controlBarButtonSize, height: controlBarButtonSize)
+                    .overlay(Circle().stroke(.secondary))
+                    .foregroundStyle(model.isRecording ? .red : .white)
+                Text(model.isRecording ? String(localized: "Recording") : String(localized: "Record"))
+                    .font(.system(size: 9))
+                    .foregroundStyle(model.isRecording ? .red : .white)
+            }
+            .frame(maxWidth: .infinity)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .confirmationDialog("", isPresented: $presentingConfirm) {
+            Button(model.isRecording ? "Stop recording" : "Start recording") {
+                toggle()
+            }
+        }
+    }
+}
+
 private struct CompactDrawerRow: View {
     let model: Model
 
@@ -176,12 +218,7 @@ private struct CompactDrawerRow: View {
                 label: String(localized: "Bitrate")
             )
             CompactDrawerButton(model: model, panel: .mic, icon: "mic", label: String(localized: "Mic"))
-            CompactDrawerButton(
-                model: model,
-                panel: .recordings,
-                icon: "record.circle",
-                label: String(localized: "Record")
-            )
+            CompactDrawerRecordButton(model: model)
             CompactDrawerButton(model: model, panel: .ctLive, icon: "flag.checkered", label: "CTLive")
         }
     }
