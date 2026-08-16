@@ -82,8 +82,14 @@ private struct RemoteControlSectionView: View {
             Text("Remote control")
         } footer: {
             VStack(alignment: .leading) {
+                // Line continuations, not raw line breaks. A multiline literal
+                // keeps whatever whitespace is in the source, and the runs of
+                // spaces this used to have meant the key never matched the one
+                // in Localizable.xcstrings, so no translation was ever found.
                 Text("""
-                Lets the race director start and stop the stream and recording,                 switch scenes and change the mic from the CTLive dashboard.                 Every remote change shows up on this phone.
+                Lets the race director start and stop the stream and recording, \
+                switch scenes and change the mic from the CTLive dashboard. \
+                Every remote change shows up on this phone.
                 """)
                 Text("")
                 if !tracker.paired {
