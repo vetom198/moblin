@@ -59,10 +59,14 @@ extension Model {
         remoteControlAssistantLog = []
     }
 
-    func reloadRemoteControlStreamer() {
+    // The caller is recorded because everything that reloads the app's outgoing
+    // connections funnels through here, and when a control connection is rebuilt
+    // at a moment it should not be, the only useful question is who asked.
+    // A default argument of #function evaluates at the call site.
+    func reloadRemoteControlStreamer(reason: String = #function) {
         if let (url, password, _) = ctLiveRemoteControlConnection(),
            let streamer = remoteControlStreamer,
-           streamer.isConnected(),
+           streamer.isConnected() || streamer.isSettlingIn(),
            streamer.isConfigured(clientUrl: url, password: password)
         {
             // Switching stream, reloading chat and checking the pairing all
@@ -95,7 +99,7 @@ extension Model {
             )
             remoteControlStreamer?.start()
             ctLiveControlDisconnectedSince = nil
-            logger.info("ct-live: Remote control connecting to \(url)")
+            logger.info("ct-live: Remote control connecting to \(url) (asked by \(reason))")
             return
         }
         guard isRemoteControlStreamerConfigured() else {

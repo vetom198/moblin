@@ -56,6 +56,9 @@ protocol RemoteControlStreamerDelegate: AnyObject {
 let remoteControlCredentialRevokedCloseCode: UInt16 = 4001
 let remoteControlNotAuthorizedCloseCode: UInt16 = 4004
 private let pongDeadlineSeconds = 10.0
+// How long a freshly built connection is left alone to finish its handshake.
+private let handshakeGraceSeconds = 10
+
 private let remoteControlTerminalCloseCodes: Set<UInt16> = [
     remoteControlCredentialRevokedCloseCode,
     remoteControlNotAuthorizedCloseCode,
@@ -76,6 +79,7 @@ class RemoteControlStreamer {
     // torn down. Bringing up an assistant is a lot easier when the log
     // distinguishes "died after 30 s" from "never got anywhere".
     private var connectedAt: ContinuousClock.Instant?
+    private let createdAt = ContinuousClock.now
     private let additionalHeaders: [(String, String)]
     private let onTerminalClose: ((UInt16) -> Void)?
     private let reconnectDelaysMs: (shortest: Int, longest: Int)?
@@ -145,6 +149,16 @@ class RemoteControlStreamer {
     // check drops the director.
     func isConfigured(clientUrl: URL, password: String) -> Bool {
         self.clientUrl == clientUrl && self.password == password
+    }
+
+    // A connection that was built moments ago and is still shaking hands counts
+    // as healthy for the purpose of not rebuilding it. Without this a second
+    // caller arriving during the handshake tears down a connection that was
+    // about to succeed, which the assistant sees as a stub that dies before it
+    // identifies. The watchdog is unaffected: it only steps in after 30 s down,
+    // by which time this window is long closed.
+    func isSettlingIn() -> Bool {
+        createdAt.duration(to: .now) < .seconds(handshakeGraceSeconds)
     }
 
     func stateChanged(state: RemoteControlAssistantStreamerState) {
