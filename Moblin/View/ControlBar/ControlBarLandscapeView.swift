@@ -8,12 +8,11 @@ private func edgesToIgnore() -> Edge.Set {
     }
 }
 
-func controlBarWidth(quickButtons: SettingsQuickButtons) -> Double {
-    if quickButtons.bigButtons, quickButtons.twoColumns {
-        controlBarWidthBigQuickButtons
-    } else {
-        controlBarWidthDefault
-    }
+func controlBarWidth(quickButtons _: SettingsQuickButtons) -> Double {
+    // The big buttons and two columns settings sized the full quick button
+    // list, which this build no longer shows. The compact drawer is a single
+    // column either way, so the width no longer depends on them.
+    controlBarWidthCompact
 }
 
 private struct QuickButtonsView: View {
@@ -131,23 +130,13 @@ private struct StatusView: View {
 private struct IconAndSettingsView: View {
     let model: Model
     @ObservedObject var store: Store
-    @Binding var drawerOpen: Bool
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 4) {
             Button {
                 model.toggleShowingPanel(type: nil, panel: .settings)
             } label: {
                 Image(systemName: "gearshape")
-                    .frame(width: controlBarButtonSize, height: controlBarButtonSize)
-                    .overlay(Circle().stroke(.secondary))
-                    .foregroundStyle(.white)
-            }
-            .buttonStyle(.borderless)
-            Button {
-                drawerOpen.toggle()
-            } label: {
-                Image(systemName: drawerOpen ? "shippingbox.fill" : "shippingbox")
                     .frame(width: controlBarButtonSize, height: controlBarButtonSize)
                     .overlay(Circle().stroke(.secondary))
                     .foregroundStyle(.white)
@@ -208,7 +197,6 @@ private struct CompactDrawerView: View {
                 icon: "record.circle",
                 label: String(localized: "Record")
             )
-            CompactDrawerButton(model: model, panel: .obs, icon: "tv", label: "OBS")
             CompactDrawerButton(model: model, panel: .ctLive, icon: "flag.checkered", label: "CTLive")
         }
         .padding(.top, 10)
@@ -242,30 +230,22 @@ private struct MainPageView: View {
     @ObservedObject var quickButtonsSettings: SettingsQuickButtons
     let store: Store
     let width: Double
-    // Default: compact view with 4 fixed buttons (Bitrate / Mic / Record /
-    // OBS). When the user taps the box icon we swap to the original
-    // multi-button list configured in Settings > Quick buttons.
-    @State private var showFullPanel: Bool = false
 
     private func buttonsWidth() -> Double {
-        width - 10
+        width - 4
     }
 
     var body: some View {
         VStack(alignment: .center, spacing: 0) {
-            IconAndSettingsView(model: model, store: store, drawerOpen: $showFullPanel)
+            IconAndSettingsView(model: model, store: store)
                 .padding(.vertical, 2)
                 .frame(width: buttonsWidth())
-            if showFullPanel {
-                PageView(model: model,
-                         quickButtons: quickButtons,
-                         quickButtonsSettings: quickButtonsSettings,
-                         page: 0,
-                         width: width)
-            } else {
-                CompactDrawerView(model: model)
-                    .frame(width: buttonsWidth())
-            }
+            // Compact only. The box icon that swapped in the full quick button
+            // list is gone: an operator holding a camera wants the same few
+            // controls in the same place every time, and the rest is the
+            // director's job from the dashboard.
+            CompactDrawerView(model: model)
+                .frame(width: buttonsWidth())
             Spacer(minLength: 0)
             HStack {
                 Spacer(minLength: 0)

@@ -108,7 +108,6 @@ private struct PageView: View {
 private struct IconAndSettingsView: View {
     @EnvironmentObject var model: Model
     @ObservedObject var store: Store
-    @Binding var drawerOpen: Bool
 
     var body: some View {
         HStack(spacing: 6) {
@@ -116,15 +115,6 @@ private struct IconAndSettingsView: View {
                 model.toggleShowingPanel(type: nil, panel: .settings)
             } label: {
                 Image(systemName: "gearshape")
-                    .frame(width: controlBarButtonSize, height: controlBarButtonSize)
-                    .overlay(Circle().stroke(.secondary))
-                    .foregroundStyle(.white)
-            }
-            .buttonStyle(.plain)
-            Button {
-                drawerOpen.toggle()
-            } label: {
-                Image(systemName: drawerOpen ? "shippingbox.fill" : "shippingbox")
                     .frame(width: controlBarButtonSize, height: controlBarButtonSize)
                     .overlay(Circle().stroke(.secondary))
                     .foregroundStyle(.white)
@@ -186,7 +176,6 @@ private struct CompactDrawerRow: View {
                 icon: "record.circle",
                 label: String(localized: "Record")
             )
-            CompactDrawerButton(model: model, panel: .obs, icon: "tv", label: "OBS")
             CompactDrawerButton(model: model, panel: .ctLive, icon: "flag.checkered", label: "CTLive")
         }
     }
@@ -199,26 +188,14 @@ private struct MainPageView: View {
     @ObservedObject var status: StatusOther
     var height: Double
     @State var presentingThermalState: Bool = false
-    // Default: compact 4-button row. Tapping the box icon swaps to the
-    // original full quick-button list configured in Settings.
-    @State private var showFullPanel: Bool = false
 
     var body: some View {
         HStack(spacing: 0) {
             HStack {
-                if showFullPanel {
-                    PageView(model: model,
-                             quickButtons: quickButtons,
-                             quickButtonsSettings: quickButtonsSettings,
-                             page: 0,
-                             height: height)
-                        .padding([.top, .leading], 5)
-                        .padding(.trailing, 0)
-                } else {
-                    CompactDrawerRow(model: model)
-                        .padding(.leading, 10)
-                    Spacer(minLength: 0)
-                }
+                // Compact only. See the note in the landscape control bar.
+                CompactDrawerRow(model: model)
+                    .padding(.leading, 10)
+                Spacer(minLength: 0)
             }
             .padding(.vertical, 6)
             VStack(spacing: 0) {
@@ -235,7 +212,7 @@ private struct MainPageView: View {
                 .padding(.top, 3)
                 .padding(.trailing, 5)
                 .padding(.leading, 0)
-                IconAndSettingsView(store: model.store, drawerOpen: $showFullPanel)
+                IconAndSettingsView(store: model.store)
                 StreamButton()
                     .padding(.top, 10)
                     .padding(.horizontal, 5)
