@@ -180,7 +180,7 @@ private struct RemoteControlStatusView: View {
 // stick until streaming, recording, the ride upload and the director's link are
 // all off, which is four things in three screens. This is that, in one tap.
 private struct EndSessionView: View {
-    let model: Model
+    @ObservedObject var model: Model
     @State private var presentingConfirm = false
 
     var body: some View {
@@ -194,7 +194,15 @@ private struct EndSessionView: View {
                     model.ctLiveEndSession()
                 }
             } message: {
-                Text("Stops the stream, recording and upload, and disconnects the director.")
+                // This sits in the panel an operator opens mid race to watch the
+                // ride data, so it has to be hard to end a live broadcast by
+                // accident. Naming what is running right now beats a generic
+                // warning that gets tapped through.
+                if model.isLive {
+                    Text("A broadcast is running. This will cut it.")
+                } else {
+                    Text("Stops the stream, recording and upload, and disconnects the director.")
+                }
             }
         } footer: {
             Text("""
