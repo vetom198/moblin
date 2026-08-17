@@ -1073,6 +1073,10 @@ extension Model: RemoteControlStreamerDelegate {
         ctLiveSetActiveStreamProfile(id: id)
         return ctLiveAppliedStreamProfileId()
     }
+
+    func remoteControlStreamerSetManualSetupEnabled(enabled: Bool) {
+        ctLiveSetManualSetupEnabled(enabled)
+    }
 }
 
 extension Model: RemoteControlAssistantDelegate {

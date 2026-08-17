@@ -120,6 +120,23 @@ extension Model {
         database.ctLive.manualSetupEnabled
     }
 
+    // The pairing check carries this too, so the app would pick it up on its
+    // own eventually. This is what makes an administrator flipping the switch
+    // take effect while the operator is holding the phone, rather than at the
+    // next launch, which is the difference between "it works" and "restart it
+    // and try again" over the radio.
+    func ctLiveSetManualSetupEnabled(_ enabled: Bool) {
+        guard database.ctLive.manualSetupEnabled != enabled else {
+            return
+        }
+        database.ctLive.manualSetupEnabled = enabled
+        storeSettings()
+        logger.info("ct-live: Manual setup \(enabled ? "unlocked" : "locked") by the dashboard")
+        makeToast(title: enabled
+            ? String(localized: "CTLive unlocked the settings")
+            : String(localized: "CTLive locked the settings"))
+    }
+
     // True once the director can actually reach this device. Used to keep the
     // app alive in the background.
     func ctLiveIsRemoteControlActive() -> Bool {

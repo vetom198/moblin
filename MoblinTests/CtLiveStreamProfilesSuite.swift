@@ -119,6 +119,20 @@ struct CtLiveStreamProfilesSuite {
         #expect(profiles[0].toCodec() == nil)
     }
 
+    // Instant unlock from the dashboard. The pairing check carries the same
+    // flag, so this only has to decode; getting it wrong would mean an
+    // administrator flips the switch and nothing happens until a relaunch.
+    @Test
+    func setManualSetupEnabledDecodes() throws {
+        let json = #"{"setManualSetupEnabled":{"enabled":true}}"#
+        let request = try JSONDecoder().decode(RemoteControlRequest.self, from: Data(json.utf8))
+        guard case let .setManualSetupEnabled(enabled: enabled) = request else {
+            Issue.record("Decoded to the wrong case")
+            return
+        }
+        #expect(enabled)
+    }
+
     @Test
     func aProfileWithoutAUrlIsUnusable() {
         let profile = makeProfile(proto: "rtmp", url: "   ", streamKey: "key")

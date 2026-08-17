@@ -241551,6 +241551,62 @@
         }
       }
     },
+    "CTLive unlocked the settings" : {
+      "localizations" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CTLive 已解鎖設定"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CTLive 已解锁设置"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CTLive 已解鎖設定"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CTLive 已解鎖設定"
+          }
+        }
+      }
+    },
+    "CTLive locked the settings" : {
+      "localizations" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CTLive 已鎖定設定"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CTLive 已锁定设置"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CTLive 已鎖定設定"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CTLive 已鎖定設定"
+          }
+        }
+      }
+    },
     "CTLive race started" : {
       "localizations" : {
         "zh-HK" : {

@@ -49,6 +49,7 @@ protocol RemoteControlStreamerDelegate: AnyObject {
     // Both return the profile the phone is actually streaming to afterwards.
     func remoteControlStreamerSetStreamProfiles(profiles: [RemoteControlStreamProfile]) -> String?
     func remoteControlStreamerSetActiveStreamProfile(id: String) -> String?
+    func remoteControlStreamerSetManualSetupEnabled(enabled: Bool)
 }
 
 // Close codes the server uses to say "do not come back with this". Reconnecting
@@ -451,6 +452,9 @@ class RemoteControlStreamer {
         case let .setActiveStreamProfile(id: profileId):
             let appliedId = delegate.remoteControlStreamerSetActiveStreamProfile(id: profileId)
             send(message: .response(id: id, result: .ok, data: .setStreamProfiles(appliedId: appliedId)))
+        case let .setManualSetupEnabled(enabled: enabled):
+            delegate.remoteControlStreamerSetManualSetupEnabled(enabled: enabled)
+            sendEmptyOkResponse(id: id)
         }
     }
 

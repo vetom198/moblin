@@ -93,6 +93,7 @@ enum RemoteControlRequest: Codable {
     case updateGolfScoreboard(data: RemoteControlGolfScoreboard)
     case setStreamProfiles(profiles: [RemoteControlStreamProfile])
     case setActiveStreamProfile(id: String)
+    case setManualSetupEnabled(enabled: Bool)
 }
 
 enum RemoteControlResponse: Codable {
