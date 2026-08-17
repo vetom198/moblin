@@ -753,6 +753,15 @@ struct RemoteControlStatusGeneral: Codable {
     var isLive: Bool?
     var isRecording: Bool?
     var isMuted: Bool?
+    // False when location access is anything short of Always. Such a phone
+    // works on a desk and goes silent in a pocket: iOS stops its location
+    // updates on backgrounding, takes away the background execution the control
+    // connection needs, and has no reason to relaunch the app after killing it.
+    //
+    // Reported because it is invisible from the dashboard and decides whether a
+    // camera can be recovered without walking to it. Six phones on a start line
+    // is exactly when nobody will think to check each one by hand.
+    var canRunInBackground: Bool?
 }
 
 struct RemoteControlStatusTopLeft: Codable {

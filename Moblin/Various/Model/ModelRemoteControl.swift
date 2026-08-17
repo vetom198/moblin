@@ -476,6 +476,7 @@ extension Model {
         general.isLive = isLive
         general.isRecording = isRecording
         general.isMuted = isMuteOn
+        general.canRunInBackground = ctLiveCanRunInBackground()
         return general
     }
 
