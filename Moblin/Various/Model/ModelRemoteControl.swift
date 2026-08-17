@@ -1078,6 +1078,22 @@ extension Model: RemoteControlStreamerDelegate {
     func remoteControlStreamerSetManualSetupEnabled(enabled: Bool) {
         ctLiveSetManualSetupEnabled(enabled)
     }
+
+    func remoteControlStreamerShowMessage(message: String, durationSeconds: Double?) -> Bool {
+        let message = message.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !message.isEmpty else {
+            return false
+        }
+        // Clamp rather than reject. A bad number is the dashboard's mistake and
+        // the operator should still get the words: too short is a flash nobody
+        // can read, too long is a note stuck over the viewfinder.
+        let duration = (durationSeconds ?? toastDefaultSeconds).clamped(to: 1 ... 30)
+        // Deliberately no vibration. The phone is next to a live microphone.
+        makeToast(title: message, durationSeconds: duration)
+        // Nobody read it if the screen was off or another app was in front. Say
+        // so rather than let the director assume the instruction landed.
+        return UIApplication.shared.applicationState == .active
+    }
 }
 
 extension Model: RemoteControlAssistantDelegate {

@@ -249,8 +249,16 @@ class StatusTopRight: ObservableObject {
     @Published var isLowPowerMode = false
 }
 
+// Long enough to read a sentence while looking through a viewfinder, short
+// enough not to sit over the shot.
+let toastDefaultSeconds = 5.0
+
 class Toast: ObservableObject {
     @Published var showingToast = false
+    // Every toast the app raises itself uses the same five seconds. Only a
+    // message pushed from the dashboard sets this, so the director can decide
+    // how long his own wording needs to be on screen.
+    @Published var durationSeconds = toastDefaultSeconds
     @Published var toast = AlertToast(type: .regular, title: "") {
         didSet {
             showingToast.toggle()
@@ -845,8 +853,10 @@ final class Model: NSObject, ObservableObject, @unchecked Sendable {
         title: String,
         subTitle: String? = nil,
         vibrate: Bool = false,
+        durationSeconds: Double = toastDefaultSeconds,
         onTapped: (() -> Void)? = nil
     ) {
+        toast.durationSeconds = durationSeconds
         toast.toast = AlertToast(type: .regular,
                                  title: title,
                                  subTitle: subTitle,

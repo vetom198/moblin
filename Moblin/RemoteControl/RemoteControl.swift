@@ -94,6 +94,14 @@ enum RemoteControlRequest: Codable {
     case setStreamProfiles(profiles: [RemoteControlStreamProfile])
     case setActiveStreamProfile(id: String)
     case setManualSetupEnabled(enabled: Bool)
+    // A note from the director to whoever is holding the camera. Shows and
+    // then goes away on its own: the operator is filming and cannot be asked
+    // to dismiss anything.
+    //
+    // The duration is the dashboard's to choose so the wording and how long it
+    // stays up can be tuned without an app update. Absent means the app's
+    // default, which is not the same as zero.
+    case showMessage(message: String, durationSeconds: Double?)
 }
 
 enum RemoteControlResponse: Codable {
@@ -110,6 +118,10 @@ enum RemoteControlResponse: Codable {
     // the applied target instead of the requested one. Nil while a stream is
     // running, where the list is stored but not switched to.
     case setStreamProfiles(appliedId: String?)
+    // Whether anybody could have read it. A phone in a pocket accepts the
+    // message and shows it to nobody, and the director has to know that his
+    // instruction did not land rather than assume it did.
+    case showMessage(displayed: Bool)
 }
 
 enum RemoteControlEvent: Codable {

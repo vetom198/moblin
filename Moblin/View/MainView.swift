@@ -651,7 +651,7 @@ struct MainView: View {
                     model.pendingSettingsImportAction = nil
                 }
             }
-            .toast(isPresenting: $toast.showingToast, duration: 5) {
+            .toast(isPresenting: $toast.showingToast, duration: toast.durationSeconds) {
                 toast.toast
             } onTap: {
                 model.toast.onTapped?()

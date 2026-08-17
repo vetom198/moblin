@@ -50,6 +50,8 @@ protocol RemoteControlStreamerDelegate: AnyObject {
     func remoteControlStreamerSetStreamProfiles(profiles: [RemoteControlStreamProfile]) -> String?
     func remoteControlStreamerSetActiveStreamProfile(id: String) -> String?
     func remoteControlStreamerSetManualSetupEnabled(enabled: Bool)
+    // Returns whether the screen was actually in front of somebody.
+    func remoteControlStreamerShowMessage(message: String, durationSeconds: Double?) -> Bool
 }
 
 // Close codes the server uses to say "do not come back with this". Reconnecting
@@ -455,6 +457,12 @@ class RemoteControlStreamer {
         case let .setManualSetupEnabled(enabled: enabled):
             delegate.remoteControlStreamerSetManualSetupEnabled(enabled: enabled)
             sendEmptyOkResponse(id: id)
+        case let .showMessage(message: message, durationSeconds: durationSeconds):
+            let displayed = delegate.remoteControlStreamerShowMessage(
+                message: message,
+                durationSeconds: durationSeconds
+            )
+            send(message: .response(id: id, result: .ok, data: .showMessage(displayed: displayed)))
         }
     }
 
