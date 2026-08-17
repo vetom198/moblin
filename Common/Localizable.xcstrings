@@ -241523,6 +241523,34 @@
         }
       }
     },
+    "Control the app with gimbals that support DockKit." : {
+      "localizations" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "以支援 DockKit 的雲台控制本 App。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "以支持 DockKit 的云台控制本 App。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "以支援 DockKit 的雲台控制本 App。"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "以支援 DockKit 的雲台控制本 App。"
+          }
+        }
+      }
+    },
     "CTLive race started" : {
       "localizations" : {
         "zh-HK" : {

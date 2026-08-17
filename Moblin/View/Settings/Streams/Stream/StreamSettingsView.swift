@@ -277,7 +277,7 @@ struct StreamSettingsView: View {
                 } label: {
                     IconAndTextSettingView(image: "play", text: "Replay")
                 }
-                if database.showAllSettings {
+                if database.showAllSettings, model.ctLiveIsManualSetupEnabled() {
                     NavigationLink {
                         StreamSnapshotSettingsView(stream: stream, recording: stream.recording)
                     } label: {
@@ -299,46 +299,53 @@ struct StreamSettingsView: View {
                     }
                 }
             }
-            Section("Streaming platforms") {
-                StreamPlatformsSettingsView(model: model, stream: stream)
+            // CTLive owns where this phone pushes to, so the platform logins
+            // have nothing to act on and would only invite an operator to set up
+            // something the next profile push overwrites.
+            if model.ctLiveIsManualSetupEnabled() {
+                Section("Streaming platforms") {
+                    StreamPlatformsSettingsView(model: model, stream: stream)
+                }
             }
             if !isMac() {
                 BackgroundStreamingView(model: model, stream: stream)
             }
-            Section {
-                NavigationLink {
-                    StreamObsRemoteControlSettingsView(stream: stream)
-                } label: {
-                    Toggle("OBS remote control", isOn: $stream.obsWebSocketEnabled)
-                        .onChange(of: stream.obsWebSocketEnabled) { _ in
-                            if stream.enabled {
-                                model.obsWebSocketEnabledUpdated()
+            if model.ctLiveIsManualSetupEnabled() {
+                Section {
+                    NavigationLink {
+                        StreamObsRemoteControlSettingsView(stream: stream)
+                    } label: {
+                        Toggle("OBS remote control", isOn: $stream.obsWebSocketEnabled)
+                            .onChange(of: stream.obsWebSocketEnabled) { _ in
+                                if stream.enabled {
+                                    model.obsWebSocketEnabledUpdated()
+                                }
                             }
+                    }
+                    if database.showAllSettings {
+                        NavigationLink {
+                            GoLiveNotificationSettingsView(stream: stream)
+                        } label: {
+                            Text("Go live notification")
                         }
-                }
-                if database.showAllSettings {
-                    NavigationLink {
-                        GoLiveNotificationSettingsView(stream: stream)
-                    } label: {
-                        Text("Go live notification")
+                        NavigationLink {
+                            StreamRealtimeIrlSettingsView(stream: stream)
+                        } label: {
+                            Toggle("RealtimeIRL", isOn: Binding(get: {
+                                stream.realtimeIrlEnabled
+                            }, set: { value in
+                                stream.realtimeIrlEnabled = value
+                                if stream.enabled {
+                                    model.reloadLocation()
+                                }
+                            }))
+                        }
                     }
                     NavigationLink {
-                        StreamRealtimeIrlSettingsView(stream: stream)
+                        StreamEmotesSettingsView(stream: stream)
                     } label: {
-                        Toggle("RealtimeIRL", isOn: Binding(get: {
-                            stream.realtimeIrlEnabled
-                        }, set: { value in
-                            stream.realtimeIrlEnabled = value
-                            if stream.enabled {
-                                model.reloadLocation()
-                            }
-                        }))
+                        Text("Emotes")
                     }
-                }
-                NavigationLink {
-                    StreamEmotesSettingsView(stream: stream)
-                } label: {
-                    Text("Emotes")
                 }
             }
             if database.showAllSettings {

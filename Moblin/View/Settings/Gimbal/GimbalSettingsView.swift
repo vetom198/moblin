@@ -153,7 +153,7 @@ struct GimbalSettingsView: View {
     var body: some View {
         Form {
             Section {
-                Text("Control Moblin with gimbals that supports DockKit.")
+                Text("Control the app with gimbals that support DockKit.")
             }
             Section {
                 HStack {

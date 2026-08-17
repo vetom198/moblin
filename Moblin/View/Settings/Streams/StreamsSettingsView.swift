@@ -65,15 +65,21 @@ struct StreamsSettingsView: View {
                         database.streams.move(fromOffsets: froms, toOffset: to)
                     }
                 }
-                CreateButtonView {
-                    model.resetWizard()
-                    createStreamWizard.presenting = true
-                }
-                .disabled(model.isLive || model.isRecording)
-                .sheet(isPresented: $createStreamWizard.presenting) {
-                    NavigationStack {
-                        StreamWizardSettingsView(model: model, createStreamWizard: createStreamWizard)
-                            .navigationBarTitleDisplayMode(.inline)
+                // CTLive configures the push targets on a managed device. A
+                // stream created here would be deleted or overwritten by the
+                // next profile push, so the operator would be doing work that
+                // silently comes undone.
+                if model.ctLiveIsManualSetupEnabled() {
+                    CreateButtonView {
+                        model.resetWizard()
+                        createStreamWizard.presenting = true
+                    }
+                    .disabled(model.isLive || model.isRecording)
+                    .sheet(isPresented: $createStreamWizard.presenting) {
+                        NavigationStack {
+                            StreamWizardSettingsView(model: model, createStreamWizard: createStreamWizard)
+                                .navigationBarTitleDisplayMode(.inline)
+                        }
                     }
                 }
             } footer: {

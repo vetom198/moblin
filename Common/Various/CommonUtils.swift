@@ -7,10 +7,6 @@ import SwiftUI
 let iconWidth = 32.0
 let controlBarButtonSize = 40.0
 let controlBarWidthDefault = 100.0
-// The landscape bar was sized for a top row of three buttons and overflowed
-// even then. It now carries two, so it can give the width back to the camera
-// preview: two buttons plus their spacing, and a little slack.
-let controlBarWidthCompact = 90.0
 let controlBarWidthBigQuickButtons = 150.0
 let controlBarQuickButtonNameSize = 10.0
 let controlBarQuickButtonNameSingleColumnSize = 12.0

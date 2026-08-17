@@ -1168,7 +1168,9 @@ class SettingsStream: Codable, Identifiable, Equatable, ObservableObject, Named 
     @Published var realtimeIrlBaseUrl = defaultRealtimeIrlBaseUrl
     @Published var realtimeIrlPushKey: String = ""
     @Published var portrait: Bool = false
-    @Published var backgroundStreaming: Bool = false
+    // On by default. A race phone goes in a pocket with the screen off, and a
+    // stream that stops there is the failure this app exists to avoid.
+    @Published var backgroundStreaming: Bool = true
     @Published var backgroundStreamingPiP: Bool = true
     @Published var estimatedViewerDelay: Float = 8.0
     @Published var ntpPoolAddress: String = "time.apple.com"
@@ -1466,7 +1468,7 @@ class SettingsStream: Codable, Identifiable, Equatable, ObservableObject, Named 
         )
         realtimeIrlPushKey = container.decode(.realtimeIrlPushKey, String.self, "")
         portrait = container.decode(.portrait, Bool.self, false)
-        backgroundStreaming = container.decode(.backgroundStreaming, Bool.self, false)
+        backgroundStreaming = container.decode(.backgroundStreaming, Bool.self, true)
         backgroundStreamingPiP = container.decode(.backgroundStreamingPiP, Bool.self, true)
         estimatedViewerDelay = container.decode(.estimatedViewerDelay, Float.self, 8.0)
         ntpPoolAddress = container.decode(.ntpPoolAddress, String.self, "time.apple.com")

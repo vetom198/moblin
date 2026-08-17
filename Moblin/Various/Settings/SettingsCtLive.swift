@@ -29,6 +29,11 @@ class SettingsCtLive: Codable, ObservableObject {
     // Absolute wss URL from the backend. Never assembled locally, so the
     // backend can move the endpoint without an app update.
     @Published var controlUrl: String = ""
+    // Whether this device may be configured by hand. CTLive owns the stream
+    // setup on a managed device, and an operator changing it there would be
+    // silently overwritten by the next profile push, so those controls are out
+    // of sight unless an administrator opens them on the dashboard.
+    @Published var manualSetupEnabled: Bool = false
     // A ride survives an app restart. The broadcast must not rewind to zero
     // because the phone ran out of memory mid race, so the session is stored
     // and picked up again on the next launch unless the operator stopped it.
@@ -55,6 +60,7 @@ class SettingsCtLive: Codable, ObservableObject {
              remoteControlEnabled,
              controlToken,
              controlUrl,
+             manualSetupEnabled,
              uploadingWasActive,
              sessionPaused,
              sessionDistance,
@@ -79,6 +85,7 @@ class SettingsCtLive: Codable, ObservableObject {
         try container.encode(.remoteControlEnabled, remoteControlEnabled)
         try container.encode(.controlToken, controlToken)
         try container.encode(.controlUrl, controlUrl)
+        try container.encode(.manualSetupEnabled, manualSetupEnabled)
         try container.encode(.uploadingWasActive, uploadingWasActive)
         try container.encode(.sessionPaused, sessionPaused)
         try container.encode(.sessionDistance, sessionDistance)
@@ -101,6 +108,7 @@ class SettingsCtLive: Codable, ObservableObject {
         remoteControlEnabled = container.decode(.remoteControlEnabled, Bool.self, false)
         controlToken = container.decode(.controlToken, String.self, "")
         controlUrl = container.decode(.controlUrl, String.self, "")
+        manualSetupEnabled = container.decode(.manualSetupEnabled, Bool.self, false)
         uploadingWasActive = container.decode(.uploadingWasActive, Bool.self, false)
         sessionPaused = container.decode(.sessionPaused, Bool.self, false)
         sessionDistance = container.decode(.sessionDistance, Double.self, 0)

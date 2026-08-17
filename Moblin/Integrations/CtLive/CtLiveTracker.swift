@@ -468,6 +468,7 @@ class CtLiveTracker: ObservableObject {
             // Unbound devices get no control credentials. Drop whatever we had.
             settings.controlToken = ""
             settings.controlUrl = ""
+            settings.manualSetupEnabled = false
             return
         }
         // The backend omits these when it has nothing new to say, so absent
@@ -477,6 +478,11 @@ class CtLiveTracker: ObservableObject {
         }
         if let controlUrl = pairing.controlUrl, !controlUrl.isEmpty {
             settings.controlUrl = controlUrl
+        }
+        // Absent means unchanged. A backend that does not know about this must
+        // not be able to lock a device out of its own settings by omission.
+        if let manualSetupEnabled = pairing.manualSetupEnabled {
+            settings.manualSetupEnabled = manualSetupEnabled
         }
     }
 
@@ -506,6 +512,7 @@ class CtLiveTracker: ObservableObject {
             let previousUrl = settings?.controlUrl
             let previousOwner = settings?.ownerUsername
             let previousInternalId = settings?.deviceInternalId
+            let previousManualSetup = settings?.manualSetupEnabled
             paired = pairing.bound
             ownerUsername = pairing.ownerUsername
             settings?.ownerUsername = pairing.bound ? pairing.ownerUsername : ""
@@ -518,6 +525,7 @@ class CtLiveTracker: ObservableObject {
                 || previousUrl != settings?.controlUrl
                 || previousOwner != settings?.ownerUsername
                 || previousInternalId != settings?.deviceInternalId
+                || previousManualSetup != settings?.manualSetupEnabled
             {
                 onPairingChanged?()
             }

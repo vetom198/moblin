@@ -53,6 +53,11 @@ struct CtLivePairing {
     // device. Absent means this device may not be controlled remotely.
     var controlToken: String?
     var controlUrl: String?
+    // Whether the operator may configure by hand what CTLive normally owns.
+    // Off unless the backend says otherwise, and only an administrator can turn
+    // it on there. Absent means unchanged rather than off, so a backend that
+    // does not know about this cannot silently lock a device out.
+    var manualSetupEnabled: Bool?
 }
 
 // The backend error bodies are already human readable strings meant to be shown
@@ -70,12 +75,14 @@ private struct CtLiveCheckResponse: Decodable {
     let ownerUsername: String?
     let controlToken: String?
     let controlUrl: String?
+    let manualSetupEnabled: Bool?
 
     enum CodingKeys: String, CodingKey {
         case bound
         case ownerUsername = "owner_username"
         case controlToken = "control_token"
         case controlUrl = "control_url"
+        case manualSetupEnabled = "manual_setup_enabled"
     }
 }
 
@@ -84,12 +91,14 @@ private struct CtLiveRedeemResponse: Decodable {
     let deviceInternalId: String?
     let controlToken: String?
     let controlUrl: String?
+    let manualSetupEnabled: Bool?
 
     enum CodingKeys: String, CodingKey {
         case ownerUsername = "owner_username"
         case deviceInternalId = "device_internal_id"
         case controlToken = "control_token"
         case controlUrl = "control_url"
+        case manualSetupEnabled = "manual_setup_enabled"
     }
 }
 
@@ -134,7 +143,8 @@ class CtLiveClient {
                                                   ownerUsername: response.ownerUsername ?? "",
                                                   deviceInternalId: "",
                                                   controlToken: response.controlToken,
-                                                  controlUrl: response.controlUrl)))
+                                                  controlUrl: response.controlUrl,
+                                                  manualSetupEnabled: response.manualSetupEnabled)))
             case let .failure(error):
                 onComplete(.failure(error))
             }
@@ -166,7 +176,8 @@ class CtLiveClient {
                                                   ownerUsername: response.ownerUsername ?? "",
                                                   deviceInternalId: response.deviceInternalId ?? "",
                                                   controlToken: response.controlToken,
-                                                  controlUrl: response.controlUrl)))
+                                                  controlUrl: response.controlUrl,
+                                                  manualSetupEnabled: response.manualSetupEnabled)))
             case let .failure(error):
                 onComplete(.failure(error))
             }

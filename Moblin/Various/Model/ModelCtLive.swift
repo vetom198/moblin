@@ -102,6 +102,20 @@ extension Model {
         reloadRemoteControlStreamer()
     }
 
+    // Whether the settings CTLive owns are the operator's to change.
+    //
+    // A managed device is locked down: the dashboard decides the ingest and the
+    // platforms, and anything the operator changed by hand would be silently
+    // overwritten by the next profile push, which is worse than not offering it.
+    // Only an administrator can open this, on the dashboard.
+    //
+    // A device with CTLive switched off is just Moblin and keeps everything.
+    // Otherwise an unpaired phone would be locked out of its own settings with
+    // no way to ask anyone for the key.
+    func ctLiveIsManualSetupEnabled() -> Bool {
+        !database.ctLive.enabled || database.ctLive.manualSetupEnabled
+    }
+
     // True once the director can actually reach this device. Used to keep the
     // app alive in the background.
     func ctLiveIsRemoteControlActive() -> Bool {

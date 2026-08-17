@@ -122,21 +122,25 @@ struct StreamSrtSettingsView: View {
             } footer: {
                 Text("System seems to work best for TMobile. IPv4 probably best for IRLToolkit.")
             }
-            Section {
-                Picker("Implementation", selection: $srt.implementation) {
-                    ForEach(SettingsStreamSrtImplementation.allCases, id: \.self) {
-                        Text($0.toString())
+            // Which SRT implementation to use is not a race day decision. On a
+            // managed device it stays on the app's own, which is the default.
+            if model.ctLiveIsManualSetupEnabled() {
+                Section {
+                    Picker("Implementation", selection: $srt.implementation) {
+                        ForEach(SettingsStreamSrtImplementation.allCases, id: \.self) {
+                            Text($0.toString())
+                        }
                     }
+                    .disabled(stream.enabled && model.isLive)
+                    .onChange(of: srt.implementation) { _ in
+                        model.reloadStreamIfEnabled(stream: stream)
+                    }
+                } footer: {
+                    Text("""
+                    \"Official\" uses the widely supported libSRT (version 1.5.3) and \"Moblin\" uses a \
+                    more energy efficient custom implementation.
+                    """)
                 }
-                .disabled(stream.enabled && model.isLive)
-                .onChange(of: srt.implementation) { _ in
-                    model.reloadStreamIfEnabled(stream: stream)
-                }
-            } footer: {
-                Text("""
-                \"Official\" uses the widely supported libSRT (version 1.5.3) and \"Moblin\" uses a \
-                more energy efficient custom implementation.
-                """)
             }
         }
         .navigationTitle("SRT(LA)")

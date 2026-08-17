@@ -53,14 +53,18 @@ struct SettingsView: View {
                         Label("Audio", systemImage: "waveform")
                     }
                 }
-                NavigationLink {
-                    LocationSettingsView(
-                        database: database,
-                        location: database.location,
-                        stream: $model.stream
-                    )
-                } label: {
-                    Label("Location", systemImage: "location")
+                // CTLive drives the location feed on a managed device, and the
+                // settings here would fight it.
+                if model.ctLiveIsManualSetupEnabled() {
+                    NavigationLink {
+                        LocationSettingsView(
+                            database: database,
+                            location: database.location,
+                            stream: $model.stream
+                        )
+                    } label: {
+                        Label("Location", systemImage: "location")
+                    }
                 }
                 NavigationLink {
                     CtLiveSettingsView(model: model, ctLive: database.ctLive, tracker: model.ctLive)
@@ -141,7 +145,7 @@ struct SettingsView: View {
                     }
                 }
             }
-            if database.showAllSettings, isPhone() {
+            if database.showAllSettings, isPhone(), model.ctLiveIsManualSetupEnabled() {
                 Section {
                     NavigationLink {
                         WatchSettingsView(watch: database.watch)
@@ -162,10 +166,12 @@ struct SettingsView: View {
                     } label: {
                         Label("About", systemImage: "info.circle")
                     }
-                    NavigationLink {
-                        DebugSettingsView(debug: database.debug)
-                    } label: {
-                        Label("Debug", systemImage: "ladybug")
+                    if model.ctLiveIsManualSetupEnabled() {
+                        NavigationLink {
+                            DebugSettingsView(debug: database.debug)
+                        } label: {
+                            Label("Debug", systemImage: "ladybug")
+                        }
                     }
                 }
             }
@@ -176,10 +182,12 @@ struct SettingsView: View {
                     } label: {
                         Label("Import and export settings", systemImage: "gearshape")
                     }
-                    NavigationLink {
-                        DeepLinkCreatorSettingsView(deepLinkCreator: database.deepLinkCreator)
-                    } label: {
-                        Label("Deep link creator", systemImage: "link.badge.plus")
+                    if model.ctLiveIsManualSetupEnabled() {
+                        NavigationLink {
+                            DeepLinkCreatorSettingsView(deepLinkCreator: database.deepLinkCreator)
+                        } label: {
+                            Label("Deep link creator", systemImage: "link.badge.plus")
+                        }
                     }
                 }
             }
