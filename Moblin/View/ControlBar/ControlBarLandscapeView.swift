@@ -140,95 +140,11 @@ private struct IconAndSettingsView: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            Button {
+            ControlBarSmallCardButton(icon: "gearshape") {
                 model.toggleShowingPanel(type: nil, panel: .settings)
-            } label: {
-                Image(systemName: "gearshape")
-                    .frame(width: controlBarButtonSize, height: controlBarButtonSize)
-                    .overlay(Circle().stroke(.secondary))
-                    .foregroundStyle(.white)
             }
-            .buttonStyle(.borderless)
-            Button {
+            ControlBarSmallCardButton(icon: "arrow.clockwise") {
                 model.reattachCamera()
-            } label: {
-                Image(systemName: "arrow.clockwise")
-                    .frame(width: controlBarButtonSize, height: controlBarButtonSize)
-                    .overlay(Circle().stroke(.secondary))
-                    .foregroundStyle(.white)
-            }
-            .buttonStyle(.borderless)
-        }
-    }
-}
-
-private struct CompactDrawerButton: View {
-    let model: Model
-    let panel: ShowingPanel
-    let icon: String
-    let label: String
-
-    var body: some View {
-        Button {
-            model.toggleShowingPanel(type: nil, panel: panel)
-        } label: {
-            VStack(spacing: 2) {
-                Image(systemName: icon)
-                    .frame(width: controlBarButtonSize, height: controlBarButtonSize)
-                    .overlay(Circle().stroke(.secondary))
-                    .foregroundStyle(.white)
-                Text(label)
-                    .font(.system(size: 9))
-                    .foregroundStyle(.white)
-            }
-            // The drawn circle is the smallest thing Apple considers tappable,
-            // and it sits against the edge of the screen where a thumb is least
-            // accurate. Take the whole width of the bar as the target without
-            // changing what is drawn.
-            .frame(maxWidth: .infinity)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-    }
-}
-
-// The Record entry beside this one opens the list of recordings, which is not
-// the same thing as starting one. With the full quick button list hidden there
-// was nowhere left to actually begin or end a recording, so this is that
-// control: state visible at a glance, because an operator has to be able to
-// tell from across a bike whether the camera is rolling.
-private struct CompactDrawerRecordButton: View {
-    @ObservedObject var model: Model
-    @State private var presentingConfirm = false
-
-    private func toggle() {
-        model.toggleRecording()
-    }
-
-    var body: some View {
-        Button {
-            if model.database.startStopRecordingConfirmations {
-                presentingConfirm = true
-            } else {
-                toggle()
-            }
-        } label: {
-            VStack(spacing: 2) {
-                Image(systemName: model.isRecording ? "record.circle.fill" : "record.circle")
-                    .frame(width: controlBarButtonSize, height: controlBarButtonSize)
-                    .overlay(Circle().stroke(.secondary))
-                    .foregroundStyle(model.isRecording ? .red : .white)
-                Text(model.isRecording ? String(localized: "Recording") : String(localized: "Record"))
-                    .font(.system(size: 9))
-                    .foregroundStyle(model.isRecording ? .red : .white)
-            }
-            .frame(maxWidth: .infinity)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .confirmationDialog("", isPresented: $presentingConfirm) {
-            Button(model.isRecording ? "Stop recording" : "Start recording") {
-                toggle()
             }
         }
     }
@@ -238,18 +154,23 @@ private struct CompactDrawerView: View {
     let model: Model
 
     var body: some View {
-        VStack(spacing: 10) {
-            CompactDrawerButton(
+        VStack(spacing: 8) {
+            ControlBarPanelCardButton(
                 model: model,
                 panel: .bitrate,
                 icon: "speedometer",
                 label: String(localized: "Bitrate")
             )
-            CompactDrawerButton(model: model, panel: .mic, icon: "mic", label: String(localized: "Mic"))
-            CompactDrawerRecordButton(model: model)
-            CompactDrawerButton(model: model, panel: .ctLive, icon: "flag.checkered", label: "CTLive")
+            ControlBarPanelCardButton(
+                model: model,
+                panel: .mic,
+                icon: "mic",
+                label: String(localized: "Mic")
+            )
+            ControlBarRecordCardButton(model: model)
+            ControlBarPanelCardButton(model: model, panel: .ctLive, icon: "flag.checkered", label: "CTLive")
         }
-        .padding(.top, 10)
+        .padding(.top, 8)
     }
 }
 
