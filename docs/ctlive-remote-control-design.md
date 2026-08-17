@@ -393,6 +393,67 @@ Moblin 的 `SettingsStream` 只有一個 `url`，stream key 是接在裡面的�
 這些 case 加進 Swift enum **不會**破壞舊 App：舊版收到不認得的 case 會 decode 失敗並記 log，
 連線不會斷。但反過來，assistant 收到不認得的欄位要能容忍（用寬鬆解析）。
 
+## 10.5 受管理裝置的設定鎖（`manual_setup_enabled`）
+
+**受管理的裝置預設鎖住，只有管理員能解鎖。**
+
+理由：這台手機推去哪由儀表板決定，下一次 `setStreamProfiles` 會覆蓋或刪除任何手動設定。
+**提供一個「做了會被無聲推翻」的操作，比不提供更糟** —— 操作員會以為自己設好了。
+
+### 後端要提供的欄位
+
+`Device` 加一個布林欄位，**預設 false**，**只有 admin 在網站上看得到這個開關**
+（一般使用者在 `/my-devices` 不該看到）。
+
+兩個配對端點的回應都要帶：
+
+```jsonc
+// GET  /api/live/device-pairing/check/
+// POST /api/live/device-pairing/redeem/
+{..., "manual_setup_enabled": false}
+```
+
+⚠️ **三態語意，欄位「不存在」與「false」意義不同：**
+
+| 值 | App 的行為 |
+|---|---|
+| **欄位不存在** | **維持現有設定不變**。不知道這個欄位的後端不能因為漏送而把裝置鎖死 |
+| `false` | 明確鎖住 |
+| `true` | 明確解鎖 |
+
+與 `videoCodec` 同一個原則：**沒送 ≠ 設成預設值。**
+
+裝置 unbind 時 App 會把它連同 `controlToken` 一起歸零，後端應保持一致。
+
+### 鎖住時 App 隱藏的項目
+
+串流建立、實況平台整區、OBS 遠端控制、表情符號、截圖、實況通知、RealtimeIRL、
+SRT(LA) 的實作選擇與說明、地點、Apple Watch、除錯、深層連結產生器。
+
+**不鎖的**：`設定 → CTLive`。那是取得鑰匙的唯一途徑，鎖了會讓裝置變成死鎖。
+
+**鎖是無條件的**，不管裝置有沒有配對 —— 這個 build 是要交給賽事團隊的，
+尚未配對的手機是「還沒被納管」而不是「一般直播 App」。
+
+## 10.6 srtla 多路聚合怎麼確認
+
+`srtla://` 的推流會為**當下每一個可用的網路介面**各開一條鏈路。有幾條是**環境決定的**，
+不是設定決定的。2026-08-17 同一台手機相隔 40 分鐘的兩次推流：
+
+```
+07:51:35.271  srtla: WiFi: Start with destination live.ctyeh.com:5000
+07:51:35.272  srtla: Cellular: Start with destination live.ctyeh.com:5000   ← 雙路
+
+08:31:29.635  srtla: Cellular: Start with destination live.ctyeh.com:5000   ← 單路
+```
+
+**賽前驗機要確認實際建立了幾條鏈路，不能只確認「有推流」**：
+
+- App 端：log 裡 `srtla: <介面>: Start with destination` 出現幾行
+- Relay 端：`srtla_rec` 的 `[STATS] groups`
+
+兩邊對得起來才算聚合成立。**某台掉到單路而沒人發現，那台就是弱網時最先斷的。**
+
 ## 11. 連線韌性與 close code 語意
 
 ### 11.1 close code 怎麼讀
