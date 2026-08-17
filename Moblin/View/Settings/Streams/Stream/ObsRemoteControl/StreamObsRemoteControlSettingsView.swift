@@ -69,7 +69,7 @@ struct StreamObsRemoteControlSettingsInnerView: View {
             Toggle("Streaming directly to OBS", isOn: $stream.streamingDirectlyToObs)
         } footer: {
             Text("""
-            Moblin will periodically try to switch to the BRB scene if the stream is \
+            CTLiveGo will periodically try to switch to the BRB scene if the stream is \
             likely broken, and back to the main scene once everything seems to work again.
             """)
         }
@@ -83,8 +83,8 @@ struct StreamObsRemoteControlSettingsInnerView: View {
                 .disabled(stream.obsBrbScene.isEmpty)
             } footer: {
                 Text("""
-                Moblin will switch to the BRB scene configured above when the current scene's \
-                SRT(LA) or RTMP video source is disconnected. Typically enable when using Moblin \
+                CTLiveGo will switch to the BRB scene configured above when the current scene's \
+                SRT(LA) or RTMP video source is disconnected. Typically enable when using CTLiveGo \
                 as SRT(LA) server at home, streaming to OBS on the same computer.
                 """)
             }
@@ -97,7 +97,7 @@ struct StreamObsRemoteControlSettingsInnerView: View {
                 capitalize: true
             )
         } footer: {
-            Text("The name of the Source in OBS that receives the stream from Moblin.")
+            Text("The name of the Source in OBS that receives the stream from CTLiveGo.")
         }
         if model.database.showAllSettings {
             Section {

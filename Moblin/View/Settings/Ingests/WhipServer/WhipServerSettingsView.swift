@@ -30,7 +30,7 @@ struct WhipServerSettingsView: View {
         NavigationLink {
             Form {
                 Section {
-                    Text("The WHIP server allows Moblin to receive video streams over the network.")
+                    Text("The WHIP server allows CTLiveGo to receive video streams over the network.")
                 }
                 Section {
                     Toggle("Enabled", isOn: $whipServer.enabled)

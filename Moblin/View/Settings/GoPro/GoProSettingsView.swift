@@ -246,7 +246,7 @@ private struct GoProRtmpUrlSettingsView: View {
                 } footer: {
                     Text("""
                     Select \(String(localized: "Server")) if you want the GoPro camera to stream to \
-                    Moblin's RTMP server on this device. Select \(String(localized: "Custom")) to \
+                    CTLiveGo's RTMP server on this device. Select \(String(localized: "Custom")) to \
                     make the GoPro camera stream to any destination.
                     """)
                 }

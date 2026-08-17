@@ -25,7 +25,7 @@ struct RtmpServerStandaloneSettingsView: View {
         Form {
             Section {
                 Text("""
-                The RTMP server allows Moblin to receive video streams over the network. \
+                The RTMP server allows CTLiveGo to receive video streams over the network. \
                 This allows the use of some drones and other cameras as sources.
                 """)
             }

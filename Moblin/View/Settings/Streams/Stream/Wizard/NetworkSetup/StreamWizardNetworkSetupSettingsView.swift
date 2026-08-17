@@ -16,7 +16,7 @@ struct StreamWizardNetworkSetupSettingsView: View {
                         )
                     } label: {
                         HStack {
-                            Text("Moblin")
+                            Text("CTLiveGo")
                             Image(systemName: "arrow.right")
                             Text("OBS")
                             Image(systemName: "arrow.right")
@@ -34,7 +34,7 @@ struct StreamWizardNetworkSetupSettingsView: View {
                         )
                     } label: {
                         HStack {
-                            Text("Moblin")
+                            Text("CTLiveGo")
                             Image(systemName: "arrow.right")
                             Text("BELABOX cloud")
                             Image(systemName: "arrow.right")
@@ -54,7 +54,7 @@ struct StreamWizardNetworkSetupSettingsView: View {
                         )
                     } label: {
                         HStack {
-                            Text("Moblin")
+                            Text("CTLiveGo")
                             Image(systemName: "arrow.right")
                             Text(platform)
                         }
@@ -75,7 +75,7 @@ struct StreamWizardNetworkSetupSettingsView: View {
                         )
                     } label: {
                         HStack {
-                            Text("Moblin")
+                            Text("CTLiveGo")
                             Image(systemName: "arrow.right")
                             Text("My server(s)")
                             Image(systemName: "arrow.right")

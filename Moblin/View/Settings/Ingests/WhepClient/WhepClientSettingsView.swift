@@ -18,7 +18,7 @@ struct WhepClientSettingsView: View {
         NavigationLink {
             Form {
                 Section {
-                    Text("The WHEP client allows Moblin to receive video streams from a WHEP endpoint.")
+                    Text("The WHEP client allows CTLiveGo to receive video streams from a WHEP endpoint.")
                 }
                 Section {
                     List {

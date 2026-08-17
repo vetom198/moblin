@@ -136,13 +136,13 @@ struct WidgetBrowserSettingsView: View {
             }
         }
         Section {
-            Toggle("Moblin access", isOn: $browser.moblinAccess)
+            Toggle("CTLiveGo access", isOn: $browser.moblinAccess)
                 .onChange(of: browser.moblinAccess) { _ in
                     model.resetSelectedScene(changeScene: false)
                 }
         } footer: {
             Text(
-                "Give the webpage access to various data in Moblin, for example chat messages and your location."
+                "Give the webpage access to various data in CTLiveGo, for example chat messages and your location."
             )
         }
         WidgetEffectsView(model: model, widget: widget)

@@ -474,7 +474,7 @@ struct RemoteControlSettingsView: View {
     var body: some View {
         Form {
             Section {
-                Text("Control and monitor Moblin from another device.")
+                Text("Control and monitor CTLiveGo from another device.")
             }
             Section {
                 NavigationLink {
@@ -516,10 +516,10 @@ struct RemoteControlSettingsView: View {
                             ExternalUrlButtonView(
                                 url: "https://moblin.mys-lang.org/moblin-remote-control-relay/assistant.html"
                             ) {
-                                Text(String("Moblin Remote Control Assistant"))
+                                Text(String("CTLiveGo Remote Control Assistant"))
                             }
                             ExternalUrlButtonView(url: "https://moblinremote.com/") {
-                                Text(String("Moblin Remote Control"))
+                                Text(String("CTLiveGo Remote Control"))
                             }
                         } header: {
                             Text("Websites")

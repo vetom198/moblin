@@ -59,7 +59,7 @@ struct MoblinLiveActivityApp: Widget {
                     // way to update or end it, so once the content has gone
                     // stale it must stop claiming the app is running. Saying
                     // "Live" next to a dead app is worse than saying nothing.
-                    Text(context.isStale ? "Moblin may have stopped" : "Moblin is running in background")
+                    Text(context.isStale ? "CTLiveGo may have stopped" : "CTLiveGo is running in background")
                         .lineLimit(1)
                         .font(.headline)
                         .foregroundColor(.white)

@@ -36,7 +36,7 @@ struct DjiDeviceScannerSettingsView: View {
             } footer: {
                 Text("""
                 Make sure your DJI device is powered on and that no other apps are connected to \
-                it via Bluetooth. Make sure the Moblin device is relatively near the DJI device. \
+                it via Bluetooth. Make sure the CTLiveGo device is relatively near the DJI device. \
                 If you still dont see your DJI device, turn your DJI device off and then on again.
                 """)
             }

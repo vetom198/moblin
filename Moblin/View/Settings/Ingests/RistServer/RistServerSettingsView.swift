@@ -30,7 +30,7 @@ struct RistServerSettingsView: View {
         NavigationLink {
             Form {
                 Section {
-                    Text("The RIST server allows Moblin to receive video streams over the network.")
+                    Text("The RIST server allows CTLiveGo to receive video streams over the network.")
                 }
                 Section {
                     Toggle("Enabled", isOn: $ristServer.enabled)

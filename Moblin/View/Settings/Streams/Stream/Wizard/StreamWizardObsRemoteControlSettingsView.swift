@@ -80,7 +80,7 @@ struct StreamWizardObsRemoteControlSettingsView: View {
                     Text("Main scene")
                 } footer: {
                     Text("""
-                    The name of your main scene in OBS. Moblin will periodically try to switch \
+                    The name of your main scene in OBS. CTLiveGo will periodically try to switch \
                     to this scene from your BRB scene if the stream is likely working.
                     """)
                 }
@@ -91,7 +91,7 @@ struct StreamWizardObsRemoteControlSettingsView: View {
                     Text("BRB scene")
                 } footer: {
                     Text("""
-                    The name of your BRB scene in OBS. Moblin will periodically try to switch \
+                    The name of your BRB scene in OBS. CTLiveGo will periodically try to switch \
                     from your main scene to this scene if the stream is likely broken.
                     """)
                 }
@@ -101,7 +101,7 @@ struct StreamWizardObsRemoteControlSettingsView: View {
                 } header: {
                     Text("Source name")
                 } footer: {
-                    Text("The name of the Source in OBS that receives the stream from Moblin.")
+                    Text("The name of the Source in OBS that receives the stream from CTLiveGo.")
                 }
             }
             Section {

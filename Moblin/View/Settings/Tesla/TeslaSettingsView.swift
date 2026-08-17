@@ -45,7 +45,7 @@ private struct TeslaSettingsConfigurationView: View {
                 }
             } footer: {
                 Text("""
-                Moblin identifies itself to the vehicle with this key. Tap the button below to add \
+                CTLiveGo identifies itself to the vehicle with this key. Tap the button below to add \
                 it to your vehicle.
                 """)
             }

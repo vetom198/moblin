@@ -29,7 +29,9 @@ struct DisconnectProtectionSettingsView: View {
                         Text("Fallback scene")
                     }
                 } footer: {
-                    Text("Can be used when using Moblin as a server at home with stable internet connection.")
+                    Text(
+                        "Can be used when using CTLiveGo as a server at home with stable internet connection."
+                    )
                 }
             }
             .navigationTitle("Disconnect protection")

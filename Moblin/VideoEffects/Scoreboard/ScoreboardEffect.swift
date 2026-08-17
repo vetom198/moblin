@@ -30,7 +30,7 @@ struct PoweredByMoblinView: View {
 
     var body: some View {
         HStack {
-            Text("Powered by Moblin")
+            Text("Powered by CTLiveGo")
                 .fontDesign(.monospaced)
                 .font(.system(size: 15))
                 .bold()

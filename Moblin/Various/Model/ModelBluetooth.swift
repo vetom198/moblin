@@ -1,6 +1,6 @@
 import CoreBluetooth
 
-let bluetoothNotAllowedMessage = "⚠️ Moblin is not allowed to use Bluetooth"
+let bluetoothNotAllowedMessage = "⚠️ CTLiveGo is not allowed to use Bluetooth"
 
 extension Model: CBCentralManagerDelegate {
     func centralManagerDidUpdateState(_: CBCentralManager) {

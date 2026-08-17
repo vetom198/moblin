@@ -91,7 +91,7 @@ private struct SceneWidgetView: View {
 }
 
 let startScreenCatptureHelp = String(localized: """
-Start a screen capture by long-pressing the record button in iOS Control Center and select Moblin.
+Start a screen capture by long-pressing the record button in iOS Control Center and select CTLiveGo.
 """)
 
 private struct VideoSourceView: View {

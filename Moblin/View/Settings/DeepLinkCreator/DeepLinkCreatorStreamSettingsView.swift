@@ -180,7 +180,7 @@ private struct DeepLinkCreatorStreamObsView: View {
             } header: {
                 Text("WebSocket")
             } footer: {
-                Text("Source name is the name of the Source in OBS that receives the stream from Moblin.")
+                Text("Source name is the name of the Source in OBS that receives the stream from CTLiveGo.")
             }
         }
         .navigationTitle("OBS remote control")

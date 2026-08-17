@@ -998,7 +998,7 @@ final class Model: NSObject, ObservableObject, @unchecked Sendable {
         data += "Debug: \(logger.debugEnabled)\n\n"
         data += log.map { e in e.message }.joined(separator: "\n")
         let url = FileManager.default.temporaryDirectory
-            .appendingPathComponent("Moblin-log-\(Date())")
+            .appendingPathComponent("CTLiveGo-log-\(Date())")
             .appendingPathExtension("txt")
         try? data.write(to: url, atomically: true, encoding: .utf8)
         return url
@@ -2450,7 +2450,7 @@ final class Model: NSObject, ObservableObject, @unchecked Sendable {
         if battery.level <= 0.07, !isBatteryCharging(), !isMac(), battery.level != -1 {
             makeWarningToast(title: lowBatteryMessage, vibrate: true)
             if database.chat.botEnabled, database.chat.botSendLowBatteryWarning {
-                sendChatMessage(message: "Moblin bot: \(lowBatteryMessage)")
+                sendChatMessage(message: "CTLiveGo bot: \(lowBatteryMessage)")
             }
         }
     }

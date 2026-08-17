@@ -57,7 +57,7 @@ struct MoblinWidgetApp: Widget {
             MoblinWidgetAppEntryView()
                 .containerBackground(.fill.tertiary, for: .widget)
         }
-        .configurationDisplayName("Moblin")
-        .description("Moblin widget.")
+        .configurationDisplayName("CTLiveGo")
+        .description("CTLiveGo widget.")
     }
 }

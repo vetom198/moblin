@@ -127,7 +127,7 @@ extension Model {
             )
             statuses.append(status)
             if !ok, database.chat.botEnabled, database.chat.botSendLowBatteryWarning {
-                sendChatMessage(message: "Moblin bot: \(lowBatteryMessage): \(status)")
+                sendChatMessage(message: "CTLiveGo bot: \(lowBatteryMessage): \(status)")
             }
         }
         let status = statuses.joined(separator: ", ")

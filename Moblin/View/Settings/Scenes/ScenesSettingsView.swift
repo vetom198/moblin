@@ -143,7 +143,7 @@ private struct RemoteSceneView: View {
             }
         } footer: {
             Text("""
-            Widgets in selected scene will be shown on the Moblin device the remote control \
+            Widgets in selected scene will be shown on the CTLiveGo device the remote control \
             assistant is connected to.
             """)
         }

@@ -61,7 +61,7 @@ private struct StreamDescriptionView: View {
             let ingestsUrl = url()
             if stream.url != ingestsUrl || stream.youTubeVideoId != youTubeStream.id {
                 HStack {
-                    Text("⚠️ Moblin is not configured to stream to this stream.")
+                    Text("⚠️ CTLiveGo is not configured to stream to this stream.")
                     Button {
                         presentingConfigureConfirm = true
                     } label: {
