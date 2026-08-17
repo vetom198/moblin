@@ -1020,8 +1020,8 @@
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "CTLiveGo can show your heart rate on stream.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "CTLiveGo can show your heart rate on stream.";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "CTLiveGo uses localhost as input and output to SRT library.";
-				INFOPLIST_KEY_NSLocationUsageDescription = "CTLiveGo can display your location and/or speed on screen and stream.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "CTLiveGo keeps sending your position to the race dashboard and stays reachable by the director while the phone is in a pocket with the screen off. Without Always, it goes quiet the moment you put the phone away.";
+				INFOPLIST_KEY_NSLocationUsageDescription = "CTLiveGo can display your location and/or speed on screen and stream.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "CTLiveGo can show your position and speed on the stream, and sends them to the race dashboard.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "CTLiveGo live streams audio from the microphone.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "CTLiveGo shows selected images as overlays.";
@@ -1088,8 +1088,8 @@
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "CTLiveGo can show your heart rate on stream.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "CTLiveGo can show your heart rate on stream.";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "CTLiveGo uses localhost as input and output to SRT library.";
-				INFOPLIST_KEY_NSLocationUsageDescription = "CTLiveGo can display your location and/or speed on screen and stream.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "CTLiveGo keeps sending your position to the race dashboard and stays reachable by the director while the phone is in a pocket with the screen off. Without Always, it goes quiet the moment you put the phone away.";
+				INFOPLIST_KEY_NSLocationUsageDescription = "CTLiveGo can display your location and/or speed on screen and stream.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "CTLiveGo can show your position and speed on the stream, and sends them to the race dashboard.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "CTLiveGo live streams audio from the microphone.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "CTLiveGo shows selected images as overlays.";

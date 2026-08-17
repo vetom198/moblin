@@ -477,6 +477,8 @@ extension Model {
         general.isRecording = isRecording
         general.isMuted = isMuteOn
         general.canRunInBackground = ctLiveCanRunInBackground()
+        general.anyEnabledSceneCapturesScreen = enabledScenes
+            .contains { $0.videoSource.cameraPosition == .screenCapture }
         return general
     }
 

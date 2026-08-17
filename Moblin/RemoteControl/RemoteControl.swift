@@ -774,6 +774,17 @@ struct RemoteControlStatusGeneral: Codable {
     // camera can be recovered without walking to it. Six phones on a start line
     // is exactly when nobody will think to check each one by hand.
     var canRunInBackground: Bool?
+    // True when any enabled scene takes this phone's own screen as its video
+    // source. On such a device everything drawn over the viewfinder can reach
+    // the broadcast, which makes a private note from the director something the
+    // audience reads.
+    //
+    // Deliberately about every enabled scene rather than the current one. The
+    // current scene is a moving target: it can change between the moment the
+    // dashboard checks and the moment the message is on screen, including by
+    // the dashboard's own setScene. A device that can put its screen on air at
+    // all is one to keep private messages away from.
+    var anyEnabledSceneCapturesScreen: Bool?
 }
 
 struct RemoteControlStatusTopLeft: Codable {
