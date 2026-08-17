@@ -98,3 +98,7 @@ Config/User.xcconfig
 
 # Node.js
 node_modules/
+
+# Agent tooling scratch, not part of the app.
+.agents/
+.claude/
