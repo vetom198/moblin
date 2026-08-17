@@ -1,0 +1,8 @@
+// Your Team ID, found at https://developer.apple.com/account.
+DEVELOPMENT_TEAM = CK5LK2R722
+
+// Something unique. Typically replace 'eerimoq' with your name.
+BASE_PRODUCT_BUNDLE_IDENTIFIER = app.cycledash.moblin
+
+// 'free' or 'all'. 'all' requires paying for Apple development account.
+CAPABILITIES = free

@@ -94,7 +94,10 @@ Config.xcconfig
 # Make macOS happy
 .DS_Store
 __MACOSX
-Config/User.xcconfig
+# Kept in the repo, unlike upstream: Xcode Cloud builds from a clean
+# clone and Base.xcconfig includes this file. Nothing in it is secret,
+# the team id and bundle id are printed in every IPA.
+# Config/User.xcconfig
 
 # Node.js
 node_modules/
