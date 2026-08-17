@@ -43,6 +43,13 @@ struct AboutSettingsView: View {
             ExternalUrlButtonView(url: "https://live.ctyeh.com/legal/privacy/") {
                 Text("Privacy policy")
             }
+            // Covers the CTLive service, not the app: what pairing a device
+            // grants the dashboard, and what the platform does not promise.
+            // The EULA below is about the software licence and says nothing
+            // about any of that.
+            ExternalUrlButtonView(url: "https://live.ctyeh.com/legal/terms/") {
+                Text("Terms of service")
+            }
             ExternalUrlButtonView(url: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/") {
                 Text("End-user license agreement (EULA)")
             }
