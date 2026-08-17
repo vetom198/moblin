@@ -200,9 +200,10 @@ struct StreamSettingsView: View {
             Section {
                 if stream.isCtLiveManaged() {
                     // The CTLive dashboard owns this destination. Editing it
-                    // here would be silently undone by the next profile push,
-                    // and the url carries the stream key.
-                    TextItemLocalizedView(name: "URL", value: stream.url, sensitive: true)
+                    // here would be silently undone by the next profile push.
+                    // Shown with only the key hidden, so the operator can still
+                    // tell main from backup and see that a target arrived.
+                    TextItemLocalizedView(name: "URL", value: stream.redactedUrl())
                 } else {
                     NavigationLink {
                         StreamUrlSettingsView(stream: stream)

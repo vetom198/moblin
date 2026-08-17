@@ -1186,6 +1186,30 @@ class SettingsStream: Codable, Identifiable, Equatable, ObservableObject, Named 
     // CtLiveStreamProfiles.
     @Published var ctLiveProfileId: String?
 
+    // The destination with only the credential hidden.
+    //
+    // Masking the whole url made an operator unable to tell main from backup,
+    // or whether a target had arrived at all: a row of dots reads as empty, and
+    // that is exactly how one was misread as "CTLive never sent anything". The
+    // host is not a secret and is the part worth checking; the key is the part
+    // worth hiding.
+    func redactedUrl() -> String {
+        guard let components = URLComponents(string: url) else {
+            return replaceSensitive(value: url, sensitive: true)
+        }
+        if let streamId = components.queryItems?.first(where: { $0.name == "streamid" })?.value,
+           !streamId.isEmpty
+        {
+            return url.replacingOccurrences(of: streamId,
+                                            with: replaceSensitive(value: streamId, sensitive: true))
+        }
+        // RTMP carries the key as the last path component.
+        guard let key = components.path.split(separator: "/").last, key.count > 1 else {
+            return url
+        }
+        return url.replacingOccurrences(of: key, with: replaceSensitive(value: String(key), sensitive: true))
+    }
+
     func isCtLiveManaged() -> Bool {
         ctLiveProfileId != nil
     }

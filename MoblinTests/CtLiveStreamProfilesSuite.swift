@@ -133,6 +133,43 @@ struct CtLiveStreamProfilesSuite {
         #expect(enabled)
     }
 
+    // A row of dots reads as empty, and that is how a delivered target was
+    // once misread as "CTLive never sent anything". The host has to stay
+    // legible; only the credential is worth hiding.
+    @Test
+    func onlyTheStreamIdIsHiddenForSrtla() {
+        let stream = SettingsStream(name: "Main")
+        stream.ctLiveProfileId = "p1"
+        stream.url = "srtla://live.ctyeh.com:5000?streamid=publish:bike1"
+        let shown = stream.redactedUrl()
+        #expect(shown.hasPrefix("srtla://live.ctyeh.com:5000?streamid="))
+        #expect(!shown.contains("bike1"))
+        #expect(shown.contains("•"))
+    }
+
+    @Test
+    func onlyTheKeyIsHiddenForRtmp() {
+        let stream = SettingsStream(name: "Main")
+        stream.ctLiveProfileId = "p1"
+        stream.url = "rtmp://a.rtmp.youtube.com/live2/secret-key"
+        let shown = stream.redactedUrl()
+        #expect(shown.hasPrefix("rtmp://a.rtmp.youtube.com/live2/"))
+        #expect(!shown.contains("secret-key"))
+    }
+
+    // Main and backup must be distinguishable at a glance, which was the whole
+    // point of not masking the host.
+    @Test
+    func mainAndBackupLookDifferent() {
+        let main = SettingsStream(name: "Main")
+        main.url = "srtla://live.ctyeh.com:5000?streamid=publish:bike1"
+        let backup = SettingsStream(name: "Backup")
+        backup.url = "srtla://live2.ctyeh.com:5000?streamid=publish:bike1"
+        #expect(main.redactedUrl() != backup.redactedUrl())
+        #expect(main.redactedUrl().contains("live.ctyeh.com"))
+        #expect(backup.redactedUrl().contains("live2.ctyeh.com"))
+    }
+
     @Test
     func aProfileWithoutAUrlIsUnusable() {
         let profile = makeProfile(proto: "rtmp", url: "   ", streamKey: "key")
