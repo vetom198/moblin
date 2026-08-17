@@ -175,6 +175,36 @@ private struct RemoteControlStatusView: View {
     }
 }
 
+// Location updates are what keep this app running with the screen off, and iOS
+// relaunches it while they are on. So closing the app after a race does not
+// stick until streaming, recording, the ride upload and the director's link are
+// all off, which is four things in three screens. This is that, in one tap.
+private struct EndSessionView: View {
+    let model: Model
+    @State private var presentingConfirm = false
+
+    var body: some View {
+        Section {
+            TextButtonView("End session and allow closing") {
+                presentingConfirm = true
+            }
+            .foregroundStyle(.red)
+            .confirmationDialog("", isPresented: $presentingConfirm) {
+                Button("End session", role: .destructive) {
+                    model.ctLiveEndSession()
+                }
+            } message: {
+                Text("Stops the stream, recording and upload, and disconnects the director.")
+            }
+        } footer: {
+            Text("""
+            The app keeps running in the background so the director can reach it. \
+            End the session when the broadcast is over, then close the app as usual.
+            """)
+        }
+    }
+}
+
 struct QuickButtonCtLiveView: View {
     let model: Model
     @ObservedObject var ctLive: CtLiveTracker
@@ -200,6 +230,7 @@ struct QuickButtonCtLiveView: View {
             RideDataView(ctLive: ctLive)
             UploadStatusView(ctLive: ctLive)
             RemoteControlStatusView(model: model, ctLiveSettings: ctLiveSettings)
+            EndSessionView(model: model)
             ShortcutSectionView {
                 NavigationLink {
                     CtLiveSettingsView(model: model, ctLive: ctLiveSettings, tracker: ctLive)

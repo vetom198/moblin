@@ -141,6 +141,34 @@ extension Model {
         storeSettings()
     }
 
+    // Everything that earns this app background execution, released in one
+    // action. Until all of it is off, iOS keeps the process alive for location
+    // updates and relaunches it after a swipe away, so the operator taps the
+    // app closed and watches it come straight back.
+    //
+    // Deliberately not a "quit": an app cannot close itself on iOS, and one that
+    // tried would look broken. This puts the phone in a state where closing it
+    // sticks, and says so.
+    func ctLiveEndSession() {
+        _ = stopStream()
+        stopRecording()
+        ctLiveStopUploading()
+        // The director's link is the last thing keeping the app awake once the
+        // ride has stopped. Turning it off is what the operator is asking for
+        // by ending the session, and toggling it back on restores it.
+        database.ctLive.remoteControlEnabled = false
+        reloadRemoteControlStreamer()
+        // Stops the location updates. Without this the app stays resident and
+        // iOS brings it back.
+        reloadLocation()
+        stopLiveActivity()
+        storeSettings()
+        updateQuickButtonStates()
+        makeToast(title: String(localized: "Session ended"),
+                  subTitle: String(localized: "Safe to close the app now"),
+                  vibrate: true)
+    }
+
     func ctLiveStopUploading() {
         ctLive.stopUploading()
         reloadLocation()
