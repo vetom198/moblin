@@ -190,9 +190,74 @@ private struct AboutAttributionsImagesSettingsView: View {
     }
 }
 
+// CTLiveGo is built on Moblin, whose licence requires the copyright and
+// permission notice to travel with every copy of the software. Shipping the app
+// without it anywhere a user can read is a licence breach, so this is not
+// optional the way a credit line in About was. Verbatim from LICENSE, and not
+// localised: a licence text that has been translated is no longer the licence.
+private let softwareLicenses: [Attribution] = [
+    Attribution(
+        name: "Moblin",
+        text: [
+            "MIT License",
+            "",
+            "Copyright (c) 2023 Erik Moqvist",
+            "",
+            "Permission is hereby granted, free of charge, to any person obtaining a copy",
+            "of this software and associated documentation files (the \"Software\"), to deal",
+            "in the Software without restriction, including without limitation the rights",
+            "to use, copy, modify, merge, publish, distribute, sublicense, and/or sell",
+            "copies of the Software, and to permit persons to whom the Software is",
+            "furnished to do so, subject to the following conditions:",
+            "",
+            "The above copyright notice and this permission notice shall be included in all",
+            "copies or substantial portions of the Software.",
+            "",
+            "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR",
+            "IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,",
+            "FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE",
+            "AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER",
+            "LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,",
+            "OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE",
+            "SOFTWARE.",
+        ]
+    ),
+]
+
+private struct AboutAttributionsSoftwareSettingsView: View {
+    var body: some View {
+        ScrollView {
+            HStack {
+                LazyVStack(alignment: .leading) {
+                    ForEach(softwareLicenses, id: \.name) { attribution in
+                        Text(attribution.name)
+                            .font(.title2)
+                            .padding(.top)
+                        VStack(alignment: .leading) {
+                            ForEach(Array(attribution.text.enumerated()), id: \.offset) { line in
+                                Text(line.element)
+                            }
+                        }
+                        .padding([.top, .leading], 5)
+                    }
+                    Spacer()
+                }
+                .padding()
+                Spacer()
+            }
+        }
+        .navigationTitle("Software")
+    }
+}
+
 struct AboutAttributionsSettingsView: View {
     var body: some View {
         Form {
+            NavigationLink {
+                AboutAttributionsSoftwareSettingsView()
+            } label: {
+                Text("Software")
+            }
             NavigationLink {
                 AboutAttributionsSoundsSettingsView()
             } label: {

@@ -1,16 +1,15 @@
 import SwiftUI
 
 struct AboutSettingsView: View {
-    @State var presentingVersionHistory: Bool = false
-
     var body: some View {
         Form {
             Section {
                 TextItemLocalizedView(name: "Version", value: appVersion())
-                // Which Moblin this fork descends from. The first question when
-                // a bug might be upstream's, and impossible to answer from the
-                // app otherwise.
-                TextItemLocalizedView(name: "Based on Moblin", value: upstreamMoblinVersion())
+                // The upstream release this descends from, and upstream's own
+                // changelog, used to be here. A race crew has no use for either
+                // and no way to act on them. The licence that requires crediting
+                // upstream is honoured under Attributions, which is where a
+                // reader looks for it.
                 NavigationLink {
                     AboutAttributionsSettingsView()
                 } label: {
@@ -22,19 +21,6 @@ struct AboutSettingsView: View {
                     AboutCtLiveVersionHistoryView()
                 } label: {
                     Text("CTLiveGo version history")
-                }
-            }
-            Section {
-                TextButtonView("Moblin version history") {
-                    presentingVersionHistory = true
-                }
-                .sheet(isPresented: $presentingVersionHistory) {
-                    ZStack {
-                        AboutVersionHistorySettingsView()
-                        CloseButtonTopRightView {
-                            presentingVersionHistory = false
-                        }
-                    }
                 }
             }
             // CTLiveGo's own policy, on CTLive's own domain. App Review needs a
