@@ -110,6 +110,14 @@ private struct RemoteControlSectionView: View {
                 } else if ctLive.controlToken.isEmpty {
                     Text("No control credential yet. Use Check pairing to fetch one.")
                 }
+                // The one setting that decides whether this phone can be
+                // reached from a pocket, and the one nobody thinks to check.
+                if !model.ctLiveCanRunInBackground() {
+                    Text("")
+                    Text("⚠️ Location access is not set to Always. The director will lose this "
+                        + "device when the screen goes off. Change it in the iOS Settings app.")
+                        .foregroundStyle(.red)
+                }
             }
         }
     }

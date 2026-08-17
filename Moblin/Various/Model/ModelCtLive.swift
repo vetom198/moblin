@@ -137,6 +137,17 @@ extension Model {
             : String(localized: "CTLive locked the settings"))
     }
 
+    // Whether this phone can stay reachable once it goes in a pocket.
+    //
+    // Anything short of Always means iOS stops the location updates when the
+    // app backgrounds, which removes the background execution the director's
+    // connection lives on, and with it any reason for iOS to relaunch the app
+    // after terminating it. A device in that state works perfectly on a desk
+    // and goes silent in the field, which is the worst way for it to fail.
+    func ctLiveCanRunInBackground() -> Bool {
+        locationManager.authorizationStatus() == .authorizedAlways
+    }
+
     // True once the director can actually reach this device. Used to keep the
     // app alive in the background.
     func ctLiveIsRemoteControlActive() -> Bool {

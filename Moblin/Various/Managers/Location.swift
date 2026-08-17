@@ -68,9 +68,36 @@ class Location: NSObject {
         manager.allowsBackgroundLocationUpdates = true
         manager.showsBackgroundLocationIndicator = true
         #endif
-        manager.requestWhenInUseAuthorization()
+        requestAuthorization()
         manager.startUpdatingLocation()
         backgroundActivity.start()
+    }
+
+    // "While Using the App" is not enough for a phone in a photographer's
+    // pocket. Without Always, iOS stops the location updates the moment the app
+    // goes to the background, which takes away the background execution the
+    // director's connection depends on, and with it any reason for iOS to
+    // relaunch the app after terminating it. That is the difference between a
+    // camera that comes back on its own and one somebody has to walk over to.
+    //
+    // Always cannot be asked for from a standing start: iOS wants When In Use
+    // first and only then offers the upgrade.
+    private func requestAuthorization() {
+        switch manager.authorizationStatus {
+        case .notDetermined:
+            manager.requestWhenInUseAuthorization()
+        case .authorizedWhenInUse:
+            manager.requestAlwaysAuthorization()
+        default:
+            break
+        }
+    }
+
+    // Reported to the operator and to the dashboard. A device configured with
+    // anything less than Always is one that will go quiet in a pocket, and
+    // nobody can see that from the outside otherwise.
+    func authorizationStatus() -> CLAuthorizationStatus {
+        manager.authorizationStatus
     }
 
     func stop() {
@@ -94,7 +121,13 @@ class Location: NSObject {
 
 extension Location: CLLocationManagerDelegate {
     func locationManagerDidChangeAuthorization(_: CLLocationManager) {
-        logger.debug("location: Auth did change \(manager.authorizationStatus)")
+        logger.info("location: Authorization is now \(manager.authorizationStatus.rawValue)")
+        // Granting When In Use is the step that makes the Always upgrade
+        // askable, so take it as soon as it arrives rather than at the next
+        // start, which on a race phone may be never.
+        if manager.authorizationStatus == .authorizedWhenInUse {
+            manager.requestAlwaysAuthorization()
+        }
     }
 
     func locationManager(_: CLLocationManager, didFailWithError error: any Error) {

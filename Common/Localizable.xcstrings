@@ -241607,6 +241607,34 @@
         }
       }
     },
+    "⚠️ Location access is not set to Always. The director will lose this device when the screen goes off. Change it in the iOS Settings app." : {
+      "localizations" : {
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ 定位權限不是「永遠」。螢幕關閉後導播會失去這台裝置。請到 iOS 的「設定」中更改。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ 定位权限不是「始终」。屏幕关闭后导播会失去这台设备。请到 iOS 的「设置」中更改。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ 定位權限不是「永遠」。螢幕關閉後導播會失去這台裝置。請到 iOS 的「設定」中更改。"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ 定位權限不是「永遠」。螢幕關閉後導播會失去這台裝置。請到 iOS 的「設定」中更改。"
+          }
+        }
+      }
+    },
     "CTLive race started" : {
       "localizations" : {
         "zh-HK" : {
