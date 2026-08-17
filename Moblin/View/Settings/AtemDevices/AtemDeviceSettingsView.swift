@@ -44,9 +44,11 @@ struct AtemDeviceSettingsView: View {
             Section {
                 Toggle("Auto-sync on RTMP server change", isOn: $device.autoSync)
                 if device.bonjourName.isEmpty {
-                    Text("Auto-sync needs the Bonjour name captured at pair time. Re-pair this device to enable it.")
-                        .font(.footnote)
-                        .foregroundColor(.secondary)
+                    Text(
+                        "Auto-sync needs the Bonjour name captured at pair time. Re-pair this device to enable it."
+                    )
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
                 } else {
                     Text("Bonjour: \(device.bonjourName)")
                         .font(.footnote)
@@ -71,7 +73,13 @@ struct AtemDeviceSettingsView: View {
                     Label("Sync now", systemImage: "arrow.triangle.2.circlepath")
                 }
             } footer: {
-                Text("When the RTMP server starts on a new IP — for example after switching Wi-Fi networks — CTLiveGo re-discovers this ATEM by its Bonjour name and re-pushes the destination.")
+                Text(
+                    """
+                    When the RTMP server starts on a new IP — for example after switching Wi-Fi \
+                    networks — CTLiveGo re-discovers this ATEM by its Bonjour name and re-pushes the \
+                    destination.
+                    """
+                )
             }
 
             Section {
@@ -82,7 +90,12 @@ struct AtemDeviceSettingsView: View {
             } header: {
                 Text("URL pushed to ATEM")
             } footer: {
-                Text("CTLiveGo derives the host from the active LAN interface at push time. Make sure the ATEM can reach this device on the LAN.")
+                Text(
+                    """
+                    CTLiveGo derives the host from the active LAN interface at push time. \
+                    Make sure the ATEM can reach this device on the LAN.
+                    """
+                )
             }
 
             Section {
@@ -117,7 +130,13 @@ struct AtemDeviceSettingsView: View {
                     .foregroundColor(pushStatusColor())
                     .frame(maxWidth: .infinity, alignment: .center)
             } footer: {
-                Text("Go Live tells the ATEM to start streaming to the destination above immediately. Stop tells it to stop. The ATEM's saved \"Platform\" preset in ATEM Software Control is unaffected.")
+                Text(
+                    """
+                    Go Live tells the ATEM to start streaming to the destination above immediately. \
+                    Stop tells it to stop. The ATEM's saved \"Platform\" preset in ATEM Software \
+                    Control is unaffected.
+                    """
+                )
             }
 
             Section {
@@ -154,7 +173,12 @@ struct AtemDeviceSettingsView: View {
             } header: {
                 Text("Current settings on ATEM")
             } footer: {
-                Text("Read from the switcher (SRSU) during the last connection. After a successful push these should match the URL above.")
+                Text(
+                    """
+                    Read from the switcher (SRSU) during the last connection. \
+                    After a successful push these should match the URL above.
+                    """
+                )
             }
         }
         .navigationTitle(device.name)
@@ -244,7 +268,9 @@ private struct AtemHostEditView: View {
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
             } footer: {
-                Text("ATEM IP on the local network. Use the search-and-pair flow to discover it automatically.")
+                Text(
+                    "ATEM IP on the local network. Use the search-and-pair flow to discover it automatically."
+                )
             }
         }
         .navigationTitle("Host")
@@ -295,5 +321,7 @@ extension AtemPushState: AtemControllerDelegate {
 }
 
 private extension String {
-    var nonEmpty: String? { isEmpty ? nil : self }
+    var nonEmpty: String? {
+        isEmpty ? nil : self
+    }
 }

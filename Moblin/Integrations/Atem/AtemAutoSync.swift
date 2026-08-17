@@ -150,7 +150,10 @@ final class AtemAutoSync {
         pushControllers[id] = controller
         pushDeviceIds[ObjectIdentifier(controller)] = id
         controller.pushStream(serviceName: device.serviceName, url: dest.url, key: dest.key)
-        logger.info("atem-autosync: \(device.name) push -> \(dest.url) key=\(dest.key.isEmpty ? "(empty)" : "***")")
+        logger
+            .info(
+                "atem-autosync: \(device.name) push -> \(dest.url) key=\(dest.key.isEmpty ? "(empty)" : "***")"
+            )
     }
 
     private func updateDeviceStatus(controllerId: ObjectIdentifier, status: AtemControllerStatus) {

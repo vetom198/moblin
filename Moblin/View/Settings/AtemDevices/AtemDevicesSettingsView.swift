@@ -21,8 +21,8 @@ private struct AtemDeviceWrapperView: View {
                 }
                 Spacer()
                 GrayTextView(text: device.host.isEmpty
-                             ? String(localized: "Not paired")
-                             : device.host)
+                    ? String(localized: "Not paired")
+                    : device.host)
             }
         }
     }
@@ -69,7 +69,13 @@ struct AtemDevicesSettingsView: View {
                 }
                 .disabled(atemDevices.devices.isEmpty)
             } footer: {
-                Text("Auto-sync re-discovers each enabled ATEM by Bonjour name and re-pushes the RTMP destination after the RTMP server reloads or the app foregrounds. Manual sync ignores both the global and per-device toggles.")
+                Text(
+                    """
+                    Auto-sync re-discovers each enabled ATEM by Bonjour name and re-pushes the RTMP \
+                    destination after the RTMP server reloads or the app foregrounds. Manual sync \
+                    ignores both the global and per-device toggles.
+                    """
+                )
             }
 
             Section {

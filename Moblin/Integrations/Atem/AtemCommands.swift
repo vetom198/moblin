@@ -3,7 +3,8 @@ import Foundation
 // CRSS — Streaming Service Set.
 // Layout verified against Sofie's libatem-connection — well-tested with
 // real ATEM Mini Pro hardware:
-// https://github.com/Sofie-Automation/sofie-atem-connection/blob/master/src/commands/Streaming/StreamingServiceCommand.ts
+// https://github.com/Sofie-Automation/sofie-atem-connection
+//   /blob/master/src/commands/Streaming/StreamingServiceCommand.ts
 //   offset 0    size 1     mask (u8)
 //   offset 1    size 64    service name (UTF-8, null-padded)
 //   offset 65   size 512   URL (UTF-8, null-padded)
@@ -22,17 +23,17 @@ import Foundation
 
 enum AtemCrssField: UInt8 {
     case serviceName = 0x01
-    case url         = 0x02
-    case streamKey   = 0x04
-    case bitrate     = 0x08
+    case url = 0x02
+    case streamKey = 0x04
+    case bitrate = 0x08
 }
 
 enum AtemOpcode {
     static let changeStreamingService = "CRSS"
-    static let streamingStateRequest  = "StrR"   // 1 byte enable + 3 bytes pad
-    static let initComplete           = "InCm"   // server sends after state dump
-    static let version                = "_ver"
-    static let productId              = "_pin"
+    static let streamingStateRequest = "StrR" // 1 byte enable + 3 bytes pad
+    static let initComplete = "InCm" // server sends after state dump
+    static let version = "_ver"
+    static let productId = "_pin"
 }
 
 // Default bitrate envelope to ship with every CRSS write.

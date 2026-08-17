@@ -22,11 +22,11 @@ let atemUdpPort: UInt16 = 9910
 
 struct AtemPacketFlags: OptionSet {
     let rawValue: UInt8
-    static let ackRequest        = AtemPacketFlags(rawValue: 1 << 0)
-    static let helloPacket       = AtemPacketFlags(rawValue: 1 << 1)
-    static let resend            = AtemPacketFlags(rawValue: 1 << 2)
-    static let requestNextAfter  = AtemPacketFlags(rawValue: 1 << 3)
-    static let ack               = AtemPacketFlags(rawValue: 1 << 4)
+    static let ackRequest = AtemPacketFlags(rawValue: 1 << 0)
+    static let helloPacket = AtemPacketFlags(rawValue: 1 << 1)
+    static let resend = AtemPacketFlags(rawValue: 1 << 2)
+    static let requestNextAfter = AtemPacketFlags(rawValue: 1 << 3)
+    static let ack = AtemPacketFlags(rawValue: 1 << 4)
 }
 
 struct AtemPacket {
@@ -92,7 +92,7 @@ struct AtemPacket {
 }
 
 struct AtemCommand {
-    var opcode: String   // 4 ASCII chars
+    var opcode: String // 4 ASCII chars
     var payload: Data
 
     func serialize() -> Data {

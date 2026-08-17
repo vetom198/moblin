@@ -15,7 +15,7 @@ protocol AtemConnectionDelegate: AnyObject {
 // protocol-version marker; without it ATEM has been observed to accept
 // the handshake but silently drop subsequent control writes (CRSS etc).
 private let atemHelloFullPacket = Data([
-    0x10, 0x14, 0x53, 0xab, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3a, 0x00, 0x00,
+    0x10, 0x14, 0x53, 0xAB, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3A, 0x00, 0x00,
     0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 ])
 private let atemQueueLabel = "com.eerimoq.atem"
@@ -46,7 +46,7 @@ final class AtemConnection {
         // reuse session ids across short-lived UDP connections, and if we
         // start at 1 every time the switcher may treat our first packet
         // as a duplicate of an already-acknowledged one and drop it.
-        localPacketIdCounter = UInt16.random(in: 1024 ... 32_000)
+        localPacketIdCounter = UInt16.random(in: 1024 ... 32000)
     }
 
     func start() {
@@ -79,7 +79,13 @@ final class AtemConnection {
                 payload: payload
             )
             let opcodes = commands.map(\.opcode).joined(separator: ",")
-            logger.info("atem: \(self.host) tx packetId=\(self.localPacketIdCounter) opcodes=\(opcodes) bytes=\(pkt.serialize().count)")
+            logger
+                .info(
+                    """
+                    atem: \(self.host) tx packetId=\(self.localPacketIdCounter) \
+                    opcodes=\(opcodes) bytes=\(pkt.serialize().count)
+                    """
+                )
             self.sendRaw(pkt)
         }
     }
@@ -121,7 +127,7 @@ final class AtemConnection {
         // Send the exact 20-byte buffer Sofie's libatem-connection uses;
         // bypass our regular packet builder so the 0x003A at offset 8..9
         // (a client-capability marker on hello packets only) lands intact.
-        sessionId = 0x53ab
+        sessionId = 0x53AB
         guard let connection else { return }
         connection.send(content: atemHelloFullPacket, completion: .contentProcessed { error in
             if let error {
@@ -137,8 +143,8 @@ final class AtemConnection {
         timer.schedule(deadline: .now() + atemHandshakeTimeout)
         timer.setEventHandler { [weak self] in
             guard let self else { return }
-            if !self.isConnected {
-                self.failConnection(reason: "Handshake timeout")
+            if !isConnected {
+                failConnection(reason: "Handshake timeout")
             }
         }
         timer.resume()
@@ -182,7 +188,7 @@ final class AtemConnection {
         guard let connection else { return }
         connection.receiveMessage { [weak self] data, _, _, error in
             guard let self else { return }
-            self.queue.async {
+            queue.async {
                 self.handleReceived(data: data, error: error)
             }
         }

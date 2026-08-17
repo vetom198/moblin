@@ -41,6 +41,11 @@ class RtmpServerChunkStream: @unchecked Sendable {
     // to video PTS forever.
     private var previousAudioConfig: MpegTsAudioConfig?
 
+    // Watchdog state variables for latency detection
+    private var firstVideoPacketWallTime: ContinuousClock.Instant?
+    private var consecutiveStaleFrameCount: Int = 0
+    private var lastWatchdogLogTime: ContinuousClock.Instant?
+
     init(client: RtmpServerClient, streamId: UInt16) {
         self.client = client
         self.streamId = streamId
@@ -396,7 +401,13 @@ class RtmpServerChunkStream: @unchecked Sendable {
             audioSampleRate = audioFormat.sampleRate
             audioSamplesPerFrame = Self.samplesPerFrame(for: config.type)
             audioBaseTimestampMs = -1
-            logger.info("rtmp-server: PTS regularization: type=\(config.type.rawValue), samplesPerFrame=\(audioSamplesPerFrame), sampleRate=\(audioSampleRate)")
+            logger
+                .info(
+                    """
+                    rtmp-server: PTS regularization: type=\(config.type.rawValue), \
+                    samplesPerFrame=\(audioSamplesPerFrame), sampleRate=\(audioSampleRate)
+                    """
+                )
         } else {
             logger.info("rtmp-server: AAC Seq header re-sent with same format — keeping PTS anchor")
         }
@@ -606,6 +617,40 @@ class RtmpServerChunkStream: @unchecked Sendable {
         else {
             return
         }
+        if firstVideoPacketWallTime == nil {
+            firstVideoPacketWallTime = ContinuousClock.now
+        }
+        if let firstVideoPacketWallTime {
+            let elapsedWallTime = firstVideoPacketWallTime.duration(to: .now).seconds
+            let elapsedStreamTime = (mediaTimestamp - mediaTimestampZero) / 1000.0
+            let streamLag = elapsedWallTime - elapsedStreamTime
+            if streamLag > 1.5 {
+                let shouldLog = lastWatchdogLogTime == nil || lastWatchdogLogTime!.duration(to: .now)
+                    .seconds >= 2.0
+                if shouldLog {
+                    logger.info("""
+                    rtmp-server: video lag detected: \(formatThreeDecimals(streamLag))s \
+                    (Wall elapsed: \(formatThreeDecimals(elapsedWallTime))s, \
+                    Stream elapsed: \(formatThreeDecimals(elapsedStreamTime))s)
+                    """)
+                    lastWatchdogLogTime = ContinuousClock.now
+                }
+            }
+            if streamLag > 5.0 {
+                consecutiveStaleFrameCount += 1
+                if consecutiveStaleFrameCount >= 60 {
+                    logger.info("""
+                    rtmp-server: video lag exceeded 5 seconds for 60 consecutive frames \
+                    (lag: \(formatThreeDecimals(streamLag))s) — disconnecting client to clear queue
+                    """)
+                    client
+                        .stopInternal(reason: "RTMP video stream lag watchdog triggered (\(Int(streamLag))s)")
+                    return
+                }
+            } else {
+                consecutiveStaleFrameCount = 0
+            }
+        }
         client.targetLatenciesSynchronizer
             .setLatestVideoPresentationTimeStamp(sampleBuffer.presentationTimeStamp.seconds)
         client.updateTargetLatencies()
@@ -684,7 +729,8 @@ class RtmpServerChunkStream: @unchecked Sendable {
         }
         audioFrameCount += 1
         let presentationTimeStamp = CMTimeMake(
-            value: Int64(regularizedTimestampMs + getBasePresentationTimeStamp(client)) + Int64(client.latency),
+            value: Int64(regularizedTimestampMs + getBasePresentationTimeStamp(client)) +
+                Int64(client.latency),
             timescale: 1000
         )
         return audioBuffer.makeSampleBuffer(presentationTimeStamp)

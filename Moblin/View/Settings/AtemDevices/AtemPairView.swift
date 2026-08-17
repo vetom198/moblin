@@ -43,7 +43,12 @@ struct AtemPairView: View {
             } header: {
                 Text("Discovered devices")
             } footer: {
-                Text("If your ATEM doesn't appear, ensure it's powered on, connected by Ethernet to the same router, and that it has been assigned an IP.")
+                Text(
+                    """
+                    If your ATEM doesn't appear, ensure it's powered on, connected by Ethernet to \
+                    the same router, and that it has been assigned an IP.
+                    """
+                )
             }
         }
         .navigationTitle("Pair ATEM")
@@ -75,8 +80,13 @@ private final class AtemPairScanner: ObservableObject {
         discovery.delegate = self
     }
 
-    func start() { discovery.start() }
-    func stop()  { discovery.stop() }
+    func start() {
+        discovery.start()
+    }
+
+    func stop() {
+        discovery.stop()
+    }
 }
 
 extension AtemPairScanner: AtemDiscoveryDelegate {
@@ -84,4 +94,3 @@ extension AtemPairScanner: AtemDiscoveryDelegate {
         self.devices = devices
     }
 }
-

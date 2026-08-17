@@ -25,7 +25,7 @@ final class AtemDiscovery: NSObject {
     ]
     private var browsers: [NetServiceBrowser] = []
     private var resolving: [NetService] = []
-    private var found: [String: AtemDiscoveredDevice] = [:]   // keyed by host
+    private var found: [String: AtemDiscoveredDevice] = [:] // keyed by host
     weak var delegate: AtemDiscoveryDelegate?
 
     override init() {

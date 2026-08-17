@@ -100,26 +100,29 @@ final class AtemTcpClient {
 
     private func startReceiveLoop() {
         guard let connection else { return }
-        connection.receive(minimumIncompleteLength: 1, maximumLength: 8192) { [weak self] data, _, isComplete, error in
-            guard let self else { return }
-            self.queue.async {
-                if let data, !data.isEmpty {
-                    let preview = data.prefix(64).map { String(format: "%02x", $0) }.joined()
-                    logger.info("atem-tcp: \(self.host) rx \(data.count) bytes: \(preview)")
-                    self.rxBuffer.append(data)
-                    self.parseRx()
+        connection
+            .receive(minimumIncompleteLength: 1,
+                     maximumLength: 8192)
+            { [weak self] data, _, isComplete, error in
+                guard let self else { return }
+                queue.async {
+                    if let data, !data.isEmpty {
+                        let preview = data.prefix(64).map { String(format: "%02x", $0) }.joined()
+                        logger.info("atem-tcp: \(self.host) rx \(data.count) bytes: \(preview)")
+                        self.rxBuffer.append(data)
+                        self.parseRx()
+                    }
+                    if let error {
+                        logger.info("atem-tcp: \(self.host) receive error: \(error)")
+                        return
+                    }
+                    if isComplete {
+                        logger.info("atem-tcp: \(self.host) receive complete")
+                        return
+                    }
+                    self.startReceiveLoop()
                 }
-                if let error {
-                    logger.info("atem-tcp: \(self.host) receive error: \(error)")
-                    return
-                }
-                if isComplete {
-                    logger.info("atem-tcp: \(self.host) receive complete")
-                    return
-                }
-                self.startReceiveLoop()
             }
-        }
     }
 
     // ATEM Ethernet Protocol response framing:
@@ -143,7 +146,10 @@ final class AtemTcpClient {
             let trimmed = firstLine.trimmingCharacters(in: .whitespaces)
             if trimmed.hasSuffix(":") {
                 // Multi-line — wait for blank line terminator.
-                guard let blankRange = rxBuffer.range(of: blank, in: firstLineEnd.lowerBound ..< rxBuffer.endIndex) else {
+                guard let blankRange = rxBuffer.range(
+                    of: blank,
+                    in: firstLineEnd.lowerBound ..< rxBuffer.endIndex
+                ) else {
                     return
                 }
                 let blockData = rxBuffer.subdata(in: 0 ..< blankRange.lowerBound)

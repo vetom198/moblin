@@ -109,11 +109,15 @@ extension Model {
     // overwritten by the next profile push, which is worse than not offering it.
     // Only an administrator can open this, on the dashboard.
     //
-    // A device with CTLive switched off is just Moblin and keeps everything.
-    // Otherwise an unpaired phone would be locked out of its own settings with
-    // no way to ask anyone for the key.
+    // Locked whether or not the device is paired. This build exists to be handed
+    // to a race crew, and a phone that has not been paired yet is one on its way
+    // to being managed, not a general purpose streaming app.
+    //
+    // Pairing itself stays reachable under Settings -> CTLive, so a locked
+    // device can always be brought under management and thereby be given the
+    // key. Nothing here can strand a phone.
     func ctLiveIsManualSetupEnabled() -> Bool {
-        !database.ctLive.enabled || database.ctLive.manualSetupEnabled
+        database.ctLive.manualSetupEnabled
     }
 
     // True once the director can actually reach this device. Used to keep the

@@ -74,7 +74,10 @@ final class AtemController {
     }
 
     func pushStream(serviceName: String, url: String, key: String) {
-        logger.info("atem: pushStream host=\(host) name=\(serviceName) url=\(url) key=\(key.isEmpty ? "(empty)" : "***")")
+        logger
+            .info(
+                "atem: pushStream host=\(host) name=\(serviceName) url=\(url) key=\(key.isEmpty ? "(empty)" : "***")"
+            )
         pendingAction = .startStream(serviceName: serviceName, url: url, key: key)
         hasRetriedStart = false
         connect()
@@ -116,7 +119,7 @@ final class AtemController {
         self.status = status
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
-            self.delegate?.atemControllerStatusChanged(status: status)
+            delegate?.atemControllerStatusChanged(status: status)
         }
     }
 }
@@ -167,9 +170,9 @@ extension AtemController: AtemTcpClientDelegate {
                 client?.send(command: atemStreamStopCommand())
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
                     guard let self else { return }
-                    self.pendingAction = .startStream(serviceName: name, url: url, key: key)
-                    self.update(status: .pushing)
-                    self.client?.send(command: atemStreamStartCommand(url: url, key: key))
+                    pendingAction = .startStream(serviceName: name, url: url, key: key)
+                    update(status: .pushing)
+                    client?.send(command: atemStreamStartCommand(url: url, key: key))
                 }
                 return
             }
