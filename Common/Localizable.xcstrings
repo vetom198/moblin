@@ -1315,6 +1315,90 @@
         }
       }
     },
+    "CTLive dashboard" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "CTLive 仪表板"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "CTLive 儀表板"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "CTLive 儀表板"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "CTLive 儀表板"
+          }
+        }
+      }
+    },
+    "Ask the race organiser for help with this device. They can see it on the CTLive dashboard and change its settings from there." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "这台装置的问题请洽赛事主办单位。他们可以在 CTLive 仪表板上看到这台装置，并从那里变更设定。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "這台裝置的問題請洽賽事主辦單位。他們可以在 CTLive 儀表板上看到這台裝置，並從那裡變更設定。"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "這台裝置的問題請洽賽事主辦單位。他們可以在 CTLive 儀表板上看到這台裝置，並從那裡變更設定。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "這台裝置的問題請洽賽事主辦單位。他們可以在 CTLive 儀表板上看到這台裝置，並從那裡變更設定。"
+          }
+        }
+      }
+    },
+    "They will ask for the device ID, which is in Settings → CTLive." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "他们会需要装置 ID，位置在 设定 → CTLive。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "他們會需要裝置 ID，位置在 設定 → CTLive。"
+          }
+        },
+        "zh-Hant-TW" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "他們會需要裝置 ID，位置在 設定 → CTLive。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "他們會需要裝置 ID，位置在 設定 → CTLive。"
+          }
+        }
+      }
+    },
     "Terms of service" : {
       "localizations" : {
         "de" : {
