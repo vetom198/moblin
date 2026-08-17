@@ -54,6 +54,15 @@ final class Processor: @unchecked Sendable {
         }
     }
 
+    // How long ago the last video frame entered the pipeline. Synchronous on
+    // purpose: it backs a status report, and the value is an atomic read.
+    func timeSinceLastVideoFrame() -> Duration? {
+        guard let at = video.latestAppendedFrameAt.value else {
+            return nil
+        }
+        return at.duration(to: .now)
+    }
+
     func setFps(value: Float64, preferAutoFps: Bool) {
         processorControlQueue.async {
             self.video.setFps(fps: value, preferAutoFps: preferAutoFps)

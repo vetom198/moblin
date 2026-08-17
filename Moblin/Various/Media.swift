@@ -177,6 +177,10 @@ final class Media: NSObject {
         currentAudioLevel
     }
 
+    func timeSinceLastVideoFrame() -> Duration? {
+        processor?.timeSinceLastVideoFrame()
+    }
+
     func getNumberOfAudioChannels() -> Int {
         numberOfAudioChannels
     }

@@ -785,6 +785,13 @@ struct RemoteControlStatusGeneral: Codable {
     // the dashboard's own setScene. A device that can put its screen on air at
     // all is one to keep private messages away from.
     var anyEnabledSceneCapturesScreen: Bool?
+    // Nil when not live. False when live but no frame has entered the pipeline
+    // for a while, which is what a locked phone looks like: iOS stops the
+    // camera, the connection stays up on keepalives, and every byte counter
+    // keeps moving while the broadcast shows nothing. Reported because it is
+    // the one state where everything a dashboard normally checks says healthy
+    // and the audience sees a black screen.
+    var isCapturingVideo: Bool?
 }
 
 struct RemoteControlStatusTopLeft: Codable {

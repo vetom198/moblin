@@ -190,6 +190,12 @@ final class VideoUnit: NSObject, @unchecked Sendable {
     private var blackPixelBufferPool: CVPixelBufferPool?
     private var latestSampleBuffer: CMSampleBuffer?
     private var latestSampleBufferTime: ContinuousClock.Instant?
+    // When the last frame actually entered the pipeline, readable from any
+    // thread. iOS stops the camera when the phone is locked while the network
+    // side keeps its connection alive with keepalives, so every ordinary
+    // statistic still looks healthy while the broadcast shows nothing. This is
+    // the only signal that does not: no frames, no update.
+    let latestAppendedFrameAt = Atomic<ContinuousClock.Instant?>(nil)
     private var sceneSwitchEndRendered = false
     private var frameTimer = SimpleTimer(queue: processorPipelineQueue)
     private var firstFrameTime: ContinuousClock.Instant?
@@ -1958,6 +1964,7 @@ final class VideoUnit: NSObject, @unchecked Sendable {
         }
         latestSampleBuffer = sampleBuffer
         latestSampleBufferTime = now
+        latestAppendedFrameAt.mutate { $0 = now }
         sceneSwitchEndRendered = false
         if appendSampleBuffer(
             sampleBuffer,

@@ -479,6 +479,17 @@ extension Model {
         general.canRunInBackground = ctLiveCanRunInBackground()
         general.anyEnabledSceneCapturesScreen = enabledScenes
             .contains { $0.videoSource.cameraPosition == .screenCapture }
+        if isLive {
+            // Two seconds is several missed frame intervals at any configured
+            // rate, and short enough that a director sees the problem before
+            // wondering why the picture looks frozen. No frame ever counts as
+            // not capturing, which it is.
+            if let sinceLastFrame = media.timeSinceLastVideoFrame() {
+                general.isCapturingVideo = sinceLastFrame < .seconds(2)
+            } else {
+                general.isCapturingVideo = false
+            }
+        }
         return general
     }
 
