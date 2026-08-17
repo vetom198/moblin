@@ -35,15 +35,39 @@ extension Model {
         }
         isCtLiveSetup = true
         ctLive.onPairingChanged = { [weak self] in
+            guard let self else {
+                return
+            }
+            // Pairing a device is the operator saying it is now the dashboard's
+            // to drive, so the director must be able to reach it without a
+            // second toggle nobody remembers to flip.
+            //
+            // Only on the transition into being controllable. The periodic
+            // pairing check reports a change whenever the dashboard edits
+            // something, and turning this back on there would override an
+            // operator who ended the session on purpose.
+            if ctLiveCanRemoteControl(), !ctLiveWasRemoteControllable {
+                // Both, or the switch that was just flipped does nothing:
+                // reaching the device needs the integration itself on, and
+                // that alone uploads nothing, a ride still has to be started.
+                database.ctLive.enabled = true
+                database.ctLive.remoteControlEnabled = true
+                updateRemoteControlStatus()
+            }
+            ctLiveWasRemoteControllable = ctLiveCanRemoteControl()
             // A fresh pairing hands us new control credentials, and losing the
             // binding takes them away. Either way the control connection has to
             // be rebuilt.
-            self?.reloadRemoteControlStreamer()
-            self?.reloadLocation()
+            reloadRemoteControlStreamer()
+            reloadLocation()
             // The credential has to survive a restart or the operator would be
             // re-pairing before every race.
-            self?.storeSettings()
+            storeSettings()
         }
+        // Credentials restored from disk are not a new pairing. Without this a
+        // launch would look like the transition and turn remote control back on
+        // for a device whose session was ended.
+        ctLiveWasRemoteControllable = ctLiveCanRemoteControl()
         ctLive.setup(settings: database.ctLive)
     }
 
